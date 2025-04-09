@@ -3,7 +3,6 @@ import user from "./routes/user.routes.js";
 import { connectDB } from "./utils/features.js";
 import { config } from "dotenv";
 
-
 config({
   path: "./.env",
 });
