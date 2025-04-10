@@ -11,4 +11,6 @@ const connectDB = (url) => {
     });
 };
 
-export { connectDB };
+const sendToken = (res, user, code, message) => {};
+
+export { connectDB, sendToken };
