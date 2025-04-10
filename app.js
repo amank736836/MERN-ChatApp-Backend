@@ -1,18 +1,24 @@
 import express from "express";
 import user from "./routes/user.routes.js";
 import { connectDB } from "./utils/features.js";
-import { config } from "dotenv";
+import { config as envConfig } from "dotenv";
+import morgan from "morgan";
 
-config({
+envConfig({
   path: "./.env",
 });
 
 const app = express();
+app.use(express.json());
+app.use(morgan("dev"));
 
-console.log(process.env.mongoDB_uri);
-connectDB(process.env.mongoDB_uri);
-
-app.use("/user", user);
+const mongoDB_uri = process.env.MONGODB_URI;
+if (!mongoDB_uri) {
+  console.error("MongoDB URI is not defined in the environment variables.");
+  process.exit(1);
+}
+connectDB(mongoDB_uri);
+const port = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
   res.send(
@@ -22,6 +28,8 @@ app.get("/", (req, res) => {
   );
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.use("/user", user);
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
