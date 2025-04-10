@@ -1,3 +1,4 @@
+import { hash } from "bcrypt";
 import mongoose, { model, Schema } from "mongoose";
 
 const userSchema = new Schema(
@@ -9,6 +10,25 @@ const userSchema = new Schema(
       minlength: 3,
       maxlength: 30,
     },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+      default: "Welcome to my profile!",
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          return /^\S+@\S+\.\S+$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid email!`,
+      },
+    },
     username: {
       type: String,
       required: true,
@@ -16,6 +36,13 @@ const userSchema = new Schema(
       unique: true,
       minlength: 3,
       maxlength: 30,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          return /^[a-zA-Z0-9_]+$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid username!`,
+      },
     },
     password: {
       type: String,
@@ -40,6 +67,13 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  this.password = await hash(this.password, 10);
+  next();
+});
 
 const userModel = mongoose.models.User || model("User", userSchema, "users");
 
