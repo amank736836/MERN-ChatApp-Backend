@@ -10,7 +10,7 @@ const createUser = async (numUsers) => {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         username: faker.internet.username().replace(/[^a-zA-Z0-9]/g, ""),
-        password: "amank@2002",
+        password: "stealthyNotes",
         avatar: {
           public_id: faker.system.fileName(),
           url: faker.image.avatar(),
