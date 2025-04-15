@@ -1,4 +1,5 @@
-import { TryCatch } from "./error";
+import { TryCatch } from "./error.js";
+import jwt from "jsonwebtoken";
 
 const isAuthenticated = TryCatch((req, res, next) => {
   const token = req.cookies.StealthyNoteToken;
