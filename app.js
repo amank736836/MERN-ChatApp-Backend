@@ -7,6 +7,8 @@ import chatRouter from "./routes/chat.routes.js";
 import userRouter from "./routes/user.routes.js";
 import { connectDB } from "./utils/features.js";
 import { createUser } from "./seeders/user.seeder.js";
+import { createGroupChat, createSingleChat } from "./seeders/chat.seeder.js";
+import { createMessageInChat } from "./seeders/message.seeder.js";
 
 envConfig({
   path: "./.env",
@@ -26,6 +28,9 @@ connectDB(mongoDB_uri);
 const port = process.env.PORT || 5000;
 
 // createUser(10);
+// createSingleChat(10);
+// createGroupChat(10);
+// createMessageInChat("67fb7776f8f575c2c3403c33", 50);
 
 app.get("/", (req, res) => {
   res.send(
