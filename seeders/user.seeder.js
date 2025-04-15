@@ -1,11 +1,11 @@
 import { faker } from "@faker-js/faker";
 import userModel from "../models/user.models.js";
 
-const createUser = async (numUsers) => {
+const createUser = async (usersCount) => {
   try {
     const usersPromise = [];
 
-    for (let i = 0; i < numUsers; i++) {
+    for (let i = 0; i < usersCount; i++) {
       const tempUser = userModel.create({
         name: faker.person.fullName(),
         email: faker.internet.email(),
@@ -21,7 +21,7 @@ const createUser = async (numUsers) => {
 
     const users = await Promise.all(usersPromise);
 
-    console.log(`${users.length} users created successfully!`, users);
+    console.log(`${users.length} users created successfully!`);
   } catch (error) {
     console.error("Error creating users:", error.message);
     process.exit(1);
