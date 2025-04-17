@@ -7,7 +7,7 @@ const chatSchema = new Schema(
       required: true,
       trim: true,
       minlength: 3,
-      maxlength: 30,
+      maxlength: 100,
     },
     groupChat: {
       type: Boolean,
