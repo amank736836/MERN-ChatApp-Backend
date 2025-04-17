@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import {
   addMembers,
   deleteChat,
@@ -25,7 +25,7 @@ import {
   validateHandler,
 } from "../utils/validators.js";
 
-const chatRouter = express.Router();
+const chatRouter = Router();
 
 chatRouter.use(isAuthenticated);
 
