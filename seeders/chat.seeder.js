@@ -4,7 +4,7 @@ import userModel from "../models/user.models.js";
 
 const createSingleChat = async (chatsCount) => {
   try {
-    const users = await userModel.find().select("_id");
+    const users = await userModel.find().select("_id name");
 
     const chatsPromise = [];
 
@@ -12,8 +12,9 @@ const createSingleChat = async (chatsCount) => {
       for (let j = i + 1; j < users.length; j++) {
         chatsPromise.push(
           chatModel.create({
-            chatModel: faker.lorem.words(2),
-            members: [users[i], users[j]],
+            name: `${users[i].name} - ${users[j].name}`,
+            groupChat: false,
+            members: [users[i]._id, users[j]._id],
           })
         );
       }
@@ -51,7 +52,7 @@ const createGroupChat = async (chatsCount) => {
 
       const chat = chatModel.create({
         groupChat: true,
-        chatModel: faker.lorem.words(2),
+        name: faker.lorem.words(2),
         members,
         creator: members[0],
       });
