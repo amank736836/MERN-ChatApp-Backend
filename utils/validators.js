@@ -71,16 +71,30 @@ const renameGroupValidator = () => [
   body("name", "Please enter a group name").notEmpty(),
 ];
 
-export {
-    addMembersValidator,
-    idValidator,
-    leaveGroupValidator,
-    loginValidator,
-    newGroupChatValidator,
-    registerValidator,
-    removeMembersValidator,
-    renameGroupValidator,
-    sendAttachmentsValidator,
-    validateHandler
-};
+const sendRequestValidator = () => [
+  body("userId", "Please enter a user ID").notEmpty(),
+];
 
+const acceptRequestValidator = () => [
+  body("requestId", "Please enter a request ID").notEmpty(),
+  body("accept")
+    .notEmpty()
+    .withMessage("Accept or reject is required")
+    .isBoolean()
+    .withMessage("Accept or reject must be a boolean"),
+];
+
+export {
+  addMembersValidator,
+  idValidator,
+  leaveGroupValidator,
+  loginValidator,
+  newGroupChatValidator,
+  registerValidator,
+  removeMembersValidator,
+  renameGroupValidator,
+  sendAttachmentsValidator,
+  validateHandler,
+  sendRequestValidator,
+  acceptRequestValidator,
+};
