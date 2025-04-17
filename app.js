@@ -9,6 +9,7 @@ import { connectDB } from "./utils/features.js";
 import { createUser } from "./seeders/user.seeder.js";
 import { createGroupChat, createSingleChat } from "./seeders/chat.seeder.js";
 import { createMessageInChat } from "./seeders/message.seeder.js";
+import adminRouter from "./routes/admin.routes.js";
 
 envConfig({
   path: "./.env",
@@ -42,6 +43,7 @@ app.get("/", (req, res) => {
 
 app.use("/user", userRouter);
 app.use("/chat", chatRouter);
+app.use("/admin", adminRouter);
 
 app.use(errorMiddleware);
 
