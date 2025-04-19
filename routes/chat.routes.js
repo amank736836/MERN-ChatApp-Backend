@@ -12,7 +12,7 @@ import {
   renameGroup,
   sendAttachments,
 } from "../controllers/chat.controller.js";
-import isAuthenticated from "../middlewares/auth.js";
+import { isAuthenticated } from "../middlewares/auth.js";
 import { attachmentsMulter } from "../middlewares/multer.js";
 import {
   addMembersValidator,
