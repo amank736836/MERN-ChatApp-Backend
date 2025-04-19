@@ -2,9 +2,65 @@ import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import userModel from "../models/user.models.js";
 import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
+import jwt from "jsonwebtoken";
+import { cookieOptions } from "../utils/features.js";
+
+const adminLogin = TryCatch(async (req, res, next) => {
+  const { secretKey } = req.body;
+
+  if (!secretKey) {
+    return next(new ErrorHandler("Please enter a secret key", 400));
+  }
+
+  const adminSecretKey = process.env.ADMIN_SECRET_KEY || "Admin@1234";
+  const isMatch = secretKey === adminSecretKey;
+
+  if (!isMatch) {
+    return next(new ErrorHandler("Invalid Admin secret key", 401));
+  }
+
+  const token = jwt.sign({ secretKey }, process.env.JWT_SECRET, {
+    expiresIn: "12h",
+  });
+
+  return res
+    .status(200)
+    .cookie("StealthyNoteAdminToken", token, {
+      ...cookieOptions,
+      maxAge: 1000 * 60 * 60 * 12,
+    })
+    .json({
+      success: true,
+      message: "Authenticated Admin Login Successfully",
+    });
+});
+
+const adminLogout = TryCatch(async (req, res, next) => {
+  res.cookie("StealthyNoteAdminToken", null, {
+    ...cookieOptions,
+    maxAge: 0,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
+const getAdminData = TryCatch(async (req, res, next) => {
+  return res.status(200).json({
+    success: true,
+    message: "Admin data",
+    admin: true,
+  });
+});
 
 const allUsers = TryCatch(async (req, res, next) => {
   const users = await userModel.find({}).sort({ createdAt: -1 });
+
+  if (!users) {
+    return next(new ErrorHandler("No users found", 404));
+  }
 
   const transformedUsers = await Promise.all(
     users.map(async ({ _id, name, avatar, email, username, createdAt }) => {
@@ -39,6 +95,10 @@ const allChats = TryCatch(async (req, res, next) => {
     .sort({ createdAt: -1 })
     .populate("members", "name avatar")
     .populate("creator", "name avatar");
+
+  if (!chats) {
+    return next(new ErrorHandler("No chats found", 404));
+  }
 
   const transformedChats = await Promise.all(
     chats.map(async ({ _id, name, groupChat, members, creator }) => {
@@ -78,4 +138,106 @@ const allChats = TryCatch(async (req, res, next) => {
   });
 });
 
-export { allUsers, allChats };
+const allMessages = TryCatch(async (req, res, next) => {
+  const messages = await messageModel
+    .find({})
+    .sort({ createdAt: -1 })
+    .populate("sender", "name avatar")
+    .populate("chat", "groupChat");
+
+  if (!messages) {
+    return next(new ErrorHandler("No messages found", 404));
+  }
+
+  const transformedMessages = messages.map(
+    ({ _id, content, sender, chat, attachments, createdAt }) => ({
+      _id,
+      content,
+      attachments,
+      createdAt,
+      chat: chat._id,
+      groupChat: chat.groupChat,
+      sender: {
+        _id: sender._id,
+        name: sender.name,
+        avatar: sender.avatar.url,
+      },
+    })
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "All messages",
+    messages: transformedMessages,
+  });
+});
+
+const getDashboardStats = TryCatch(async (req, res, next) => {
+  const [groupChatCount, totalUsers, totalChats, totalMessages] =
+    await Promise.all([
+      chatModel.countDocuments({ groupChat: true }),
+      userModel.countDocuments(),
+      chatModel.countDocuments(),
+      messageModel.countDocuments(),
+    ]);
+
+  if (!groupChatCount) {
+    return next(new ErrorHandler("No group chats found", 404));
+  }
+
+  if (!totalUsers) {
+    return next(new ErrorHandler("No users found", 404));
+  }
+
+  if (!totalChats) {
+    return next(new ErrorHandler("No chats found", 404));
+  }
+
+  if (!totalMessages) {
+    return next(new ErrorHandler("No messages found", 404));
+  }
+
+  const today = new Date();
+
+  const last7Days = new Date();
+  last7Days.setDate(last7Days.getDate() - 7);
+
+  const last7DaysMessages = await messageModel
+    .find({
+      createdAt: { $gte: last7Days, $lte: today },
+    })
+    .select("createdAt");
+
+  const messages = new Array(7).fill(0);
+
+  last7DaysMessages.forEach(({ createdAt }) => {
+    const index = today.getDate() - createdAt.getDate();
+
+    messages[6 - index]++;
+  });
+
+  const stats = {
+    totalUsers,
+    totalChats,
+    totalMessages,
+    groupChatCount,
+    singleChatCount: totalChats - groupChatCount,
+    last7DaysMessages: messages,
+  };
+
+  return res.status(200).json({
+    success: true,
+    message: "Dashboard stats",
+    stats,
+  });
+});
+
+export {
+  allUsers,
+  allChats,
+  allMessages,
+  getDashboardStats,
+  adminLogin,
+  adminLogout,
+  getAdminData,
+};
