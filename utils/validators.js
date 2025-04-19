@@ -1,4 +1,4 @@
-import { body, check, param, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 import { ErrorHandler } from "../middlewares/error.js";
 
 const validateHandler = (req, res, next) => {
@@ -20,7 +20,6 @@ const registerValidator = () => [
   body("username", "Please enter a username").notEmpty(),
   body("email", "Please enter a valid email").isEmail(),
   body("password", "Please enter a password").notEmpty(),
-  check("avatar", "Please upload an avatar").notEmpty(),
 ];
 
 const loginValidator = () => [
@@ -57,11 +56,6 @@ const leaveGroupValidator = () => [
 
 const sendAttachmentsValidator = () => [
   body("chatId", "Please enter a chat ID").notEmpty(),
-  check("files")
-    .notEmpty()
-    .withMessage("Please upload files")
-    .isArray({ min: 1, max: 5 })
-    .withMessage("You can upload 1 to 5 files"),
 ];
 
 const idValidator = () => [param("id", "Please enter a chat ID").notEmpty()];
@@ -84,17 +78,18 @@ const acceptRequestValidator = () => [
     .withMessage("Accept or reject must be a boolean"),
 ];
 
+const adminLoginValidator = () => [
+  body("secretKey", "Please enter a secret key").notEmpty(),
+];
+
 export {
-  addMembersValidator,
-  idValidator,
+  acceptRequestValidator, addMembersValidator, adminLoginValidator, idValidator,
   leaveGroupValidator,
   loginValidator,
   newGroupChatValidator,
   registerValidator,
   removeMembersValidator,
   renameGroupValidator,
-  sendAttachmentsValidator,
-  validateHandler,
-  sendRequestValidator,
-  acceptRequestValidator,
+  sendAttachmentsValidator, sendRequestValidator, validateHandler
 };
+
