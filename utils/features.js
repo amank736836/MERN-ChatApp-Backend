@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { NODE_ENV } from "../app.js";
+import { JWT_EXPIRES_IN, JWT_SECRET, NODE_ENV } from "../app.js";
 
 const connectDB = (url) => {
   mongoose
@@ -23,8 +23,8 @@ const cookieOptions = {
 };
 
 const sendToken = (res, user, code, message) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+  const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
   });
 
   return res
