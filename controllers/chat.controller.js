@@ -287,6 +287,16 @@ const sendAttachments = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Login to access this resource", 401));
   }
 
+  const files = req.files || [];
+
+  if (files.length < 1) {
+    return next(new ErrorHandler("Please attach files", 400));
+  }
+
+  if (files.length > 5) {
+    return next(new ErrorHandler("You can attach max 5 files", 400));
+  }
+
   const [chat, user] = await Promise.all([
     chatModel.findById(chatId),
     userModel.findById(req.userId, "name"),
@@ -298,12 +308,6 @@ const sendAttachments = TryCatch(async (req, res, next) => {
 
   if (!chat.members.includes(req.userId)) {
     return next(new ErrorHandler("User not in the group", 400));
-  }
-
-  const files = req.files || [];
-
-  if (files.length < 1) {
-    return next(new ErrorHandler("Please attach files", 400));
   }
 
   const attachments = [];
@@ -339,7 +343,7 @@ const sendAttachments = TryCatch(async (req, res, next) => {
 });
 
 const getChatDetails = TryCatch(async (req, res, next) => {
-  const { chatId } = req.params;
+  const chatId = req.params.id;
 
   if (!chatId) {
     return next(new ErrorHandler("Chat ID is required", 400));
