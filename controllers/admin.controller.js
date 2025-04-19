@@ -4,6 +4,7 @@ import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
 import jwt from "jsonwebtoken";
 import { cookieOptions } from "../utils/features.js";
+import { ADMIN_SECRET_KEY } from "../app.js";
 
 const adminLogin = TryCatch(async (req, res, next) => {
   const { secretKey } = req.body;
@@ -12,14 +13,14 @@ const adminLogin = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please enter a secret key", 400));
   }
 
-  const adminSecretKey = process.env.ADMIN_SECRET_KEY || "Admin@1234";
+  const adminSecretKey = ADMIN_SECRET_KEY;
   const isMatch = secretKey === adminSecretKey;
 
   if (!isMatch) {
     return next(new ErrorHandler("Invalid Admin secret key", 401));
   }
 
-  const token = jwt.sign({ secretKey }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ secretKey }, JWT_SECRET, {
     expiresIn: "12h",
   });
 
