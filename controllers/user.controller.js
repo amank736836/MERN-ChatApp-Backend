@@ -23,6 +23,12 @@ const newUser = TryCatch(async (req, res, next) => {
     name = username || email.split("@")[0];
   }
 
+  const file = req.file;
+
+  if (!file) {
+    return next(new ErrorHandler("Avatar is required", 400));
+  }
+
   const avatar = {
     public_id: "sample_public_id",
     url: "https://example.com/sample_avatar.jpg",
@@ -283,7 +289,10 @@ const getMyFriends = TryCatch(async (req, res, next) => {
 });
 
 export {
-  acceptFriendRequest, getMyFriends, getMyNotifications, getMyProfile,
+  acceptFriendRequest,
+  getMyFriends,
+  getMyNotifications,
+  getMyProfile,
   login,
   logout,
   newUser,
