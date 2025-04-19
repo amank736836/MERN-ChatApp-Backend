@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { NODE_ENV } from "../app.js";
 
 const connectDB = (url) => {
   mongoose
@@ -17,8 +18,8 @@ const JWT_COOKIE_EXPIRES_IN = process.env.JWT_COOKIE_EXPIRES_IN || 7;
 const cookieOptions = {
   maxAge: JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production" ? true : false,
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV.trim() === "production" ? true : false,
+  sameSite: process.env.NODE_ENV.trim() === "production" ? "none" : "lax",
 };
 
 const sendToken = (res, user, code, message) => {
