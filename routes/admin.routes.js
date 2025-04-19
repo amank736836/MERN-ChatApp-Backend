@@ -1,16 +1,28 @@
 import { Router } from "express";
-import { allChats, allUsers } from "../controllers/admin.controller.js";
+import {
+  adminLogin,
+  adminLogout,
+  allChats,
+  allMessages,
+  allUsers,
+  getAdminData,
+  getDashboardStats,
+} from "../controllers/admin.controller.js";
+import { adminLoginValidator, validateHandler } from "../utils/validators.js";
+import { adminOnly } from "../middlewares/auth.js";
 
 const adminRouter = Router();
 
-adminRouter.get("/", allUsers);
-adminRouter.get("/verify", allUsers);
-adminRouter.get("/logout", allUsers);
+adminRouter.post("/verify", adminLoginValidator(), validateHandler, adminLogin);
+adminRouter.get("/logout", adminLogout);
 
-adminRouter.get("/stats", allUsers);
+adminRouter.use(adminOnly);
+
+adminRouter.get("/", getAdminData);
+adminRouter.get("/stats", getDashboardStats);
 
 adminRouter.get("/users", allUsers);
 adminRouter.get("/chats", allChats);
-adminRouter.get("/messages", allUsers);
+adminRouter.get("/messages", allMessages);
 
 export default adminRouter;
