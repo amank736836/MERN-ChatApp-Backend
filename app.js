@@ -3,13 +3,10 @@ import { config as envConfig } from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import { errorMiddleware } from "./middlewares/error.js";
+import adminRouter from "./routes/admin.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import userRouter from "./routes/user.routes.js";
 import { connectDB } from "./utils/features.js";
-import { createUser } from "./seeders/user.seeder.js";
-import { createGroupChat, createSingleChat } from "./seeders/chat.seeder.js";
-import { createMessageInChat } from "./seeders/message.seeder.js";
-import adminRouter from "./routes/admin.routes.js";
 
 envConfig({
   path: "./.env",
@@ -27,6 +24,11 @@ if (!mongoDB_uri) {
 }
 connectDB(mongoDB_uri);
 const port = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV.trim() || "production";
+
+if (NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 // createUser(10);
 // createSingleChat(10);
@@ -48,5 +50,8 @@ app.use("/admin", adminRouter);
 app.use(errorMiddleware);
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port} in ${NODE_ENV} mode`);
 });
+
+export { NODE_ENV };
+
