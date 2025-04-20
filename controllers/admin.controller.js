@@ -4,7 +4,7 @@ import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
 import jwt from "jsonwebtoken";
 import { cookieOptions } from "../utils/features.js";
-import { ADMIN_SECRET_KEY } from "../app.js";
+import { ADMIN_SECRET_KEY, JWT_SECRET } from "../app.js";
 
 const adminLogin = TryCatch(async (req, res, next) => {
   const { secretKey } = req.body;
