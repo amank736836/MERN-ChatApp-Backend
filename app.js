@@ -6,16 +6,15 @@ import { errorMiddleware } from "./middlewares/error.js";
 import adminRouter from "./routes/admin.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import userRouter from "./routes/user.routes.js";
-import { connectDB } from "./utils/features.js";
+import { connectDB, getSockets } from "./utils/features.js";
+import { Server } from "socket.io";
+import { createServer } from "http";
+import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./utils/events.js";
+import { v4 as uuid } from "uuid";
 
 envConfig({
   path: "./.env",
 });
-
-const app = express();
-app.use(express.json());
-app.use(cookieParser());
-app.use(morgan("dev"));
 
 const mongoDB_uri = process.env.MONGODB_URI;
 const PORT = process.env.PORT || 5000;
@@ -58,16 +57,18 @@ if (!mongoDB_uri) {
   process.exit(1);
 }
 
-connectDB(mongoDB_uri);
+const app = express();
+const server = createServer(app);
 
+const io = new Server(server, {});
+app.use(express.json());
+app.use(cookieParser());
+app.use(morgan("dev"));
+
+connectDB(mongoDB_uri);
 if (NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
-
-// createUser(10);
-// createSingleChat(10);
-// createGroupChat(10);
-// createMessageInChat("67fb7776f8f575c2c3403c33", 50);
 
 app.get("/", (req, res) => {
   res.send(
@@ -81,10 +82,70 @@ app.use("/user", userRouter);
 app.use("/chat", chatRouter);
 app.use("/admin", adminRouter);
 
+const userSocketIDs = new Map();
+
+io.on("connection", (socket) => {
+  console.log("User connected ", socket.id);
+
+  const user = {
+    _id: "askdnkasd",
+    name: "Aman",
+  };
+
+  userSocketIDs.set(user._id.toString(), socket.id);
+
+  socket.on(NEW_MESSAGE, async ({ chatId, message, members }) => {
+    const messageForRealTime = {
+      content: message,
+      _id: uuid(),
+      sender: {
+        _id: user._id,
+        name: user.name,
+      },
+      chat: chatId,
+      createdAt: new Date().toISOString(),
+    };
+
+    const messageForDB = {
+      content: message,
+      chat: chatId,
+      sender: user._id,
+      attachments: [],
+    };
+
+    const membersSocket = getSockets(members);
+
+    io.to(membersSocket).emit(NEW_MESSAGE, {
+      chatId,
+      message: messageForRealTime,
+    });
+
+    io.to(membersSocket).emit(NEW_MESSAGE_ALERT, {
+      chatId,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    userSocketIDs.delete(user._id.toString());
+    console.log("User disconnected");
+  });
+});
+
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT} in ${NODE_ENV} mode`);
 });
 
-export { NODE_ENV, ADMIN_SECRET_KEY, JWT_SECRET, JWT_EXPIRES_IN };
+// createUser(10);
+// createSingleChat(10);
+// createGroupChat(10);
+// createMessageInChat("67fb7776f8f575c2c3403c33", 50);
+
+export {
+  ADMIN_SECRET_KEY,
+  JWT_EXPIRES_IN,
+  JWT_SECRET,
+  NODE_ENV,
+  userSocketIDs,
+};
