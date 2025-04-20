@@ -3,7 +3,7 @@ import {
   NEW_ATTACHMENT,
   NEW_MESSAGE_ALERT,
   REFETCH_CHATS,
-} from "../constants/events.js";
+} from "../utils/events.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
