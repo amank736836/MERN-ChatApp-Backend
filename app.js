@@ -2,7 +2,7 @@ import cookieParser from "cookie-parser";
 import { config as envConfig } from "dotenv";
 import express from "express";
 import morgan from "morgan";
-import { errorMiddleware } from "./middlewares/error.js";
+import { errorMiddleware, TryCatch } from "./middlewares/error.js";
 import adminRouter from "./routes/admin.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import userRouter from "./routes/user.routes.js";
@@ -11,6 +11,7 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./utils/events.js";
 import { v4 as uuid } from "uuid";
+import messageModel from "./models/message.models.js";
 
 envConfig({
   path: "./.env",
@@ -84,52 +85,65 @@ app.use("/admin", adminRouter);
 
 const userSocketIDs = new Map();
 
-io.on("connection", (socket) => {
-  console.log("User connected ", socket.id);
-
-  const user = {
-    _id: "askdnkasd",
-    name: "Aman",
-  };
-
-  userSocketIDs.set(user._id.toString(), socket.id);
-
-  socket.on(NEW_MESSAGE, async ({ chatId, message, members }) => {
-    const messageForRealTime = {
-      content: message,
-      _id: uuid(),
-      sender: {
-        _id: user._id,
-        name: user.name,
-      },
-      chat: chatId,
-      createdAt: new Date().toISOString(),
-    };
-
-    const messageForDB = {
-      content: message,
-      chat: chatId,
-      sender: user._id,
-      attachments: [],
-    };
-
-    const membersSocket = getSockets(members);
-
-    io.to(membersSocket).emit(NEW_MESSAGE, {
-      chatId,
-      message: messageForRealTime,
-    });
-
-    io.to(membersSocket).emit(NEW_MESSAGE_ALERT, {
-      chatId,
-    });
-  });
-
-  socket.on("disconnect", () => {
-    userSocketIDs.delete(user._id.toString());
-    console.log("User disconnected");
-  });
+io.use((socket, next) => {
+  const token = socket.handshake.headers["authorization"]?.split(" ")[1];
+  if (!token) {
+    return next(new Error("Authentication error"));
+  }
+  next();
 });
+
+io.on(
+  "connection",
+  TryCatch((socket) => {
+    console.log("User connected ", socket.id);
+
+    const user = {
+      _id: "67f7e0b18361a6b32f1b16b6",
+      name: "Aman",
+    };
+
+    userSocketIDs.set(user._id.toString(), socket.id);
+
+    socket.on(NEW_MESSAGE, async ({ chatId, message, members }) => {
+      const messageForRealTime = {
+        content: message,
+        _id: uuid(),
+        sender: {
+          _id: user._id,
+          name: user.name,
+        },
+        chat: chatId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const messageForDB = {
+        content: message,
+        chat: chatId,
+        sender: user._id,
+        attachments: [],
+      };
+
+      const membersSocket = getSockets(members);
+
+      io.to(membersSocket).emit(NEW_MESSAGE, {
+        chatId,
+        message: messageForRealTime,
+      });
+
+      io.to(membersSocket).emit(NEW_MESSAGE_ALERT, {
+        chatId,
+      });
+
+      await messageModel.create(messageForDB);
+    });
+
+    socket.on("disconnect", () => {
+      userSocketIDs.delete(user._id.toString());
+      console.log("User disconnected");
+    });
+  })
+);
 
 app.use(errorMiddleware);
 
