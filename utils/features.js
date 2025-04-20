@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { JWT_EXPIRES_IN, JWT_SECRET, NODE_ENV } from "../app.js";
+import mongoose from "mongoose";
+import { JWT_EXPIRES_IN, JWT_SECRET, userSocketIDs } from "../app.js";
+import { errCheck } from "../middlewares/error.js";
 
 const connectDB = (url) => {
   mongoose
@@ -9,6 +10,8 @@ const connectDB = (url) => {
       console.log(`MongoDB connected to: ${data.connection.host}`);
     })
     .catch((err) => {
+      err = errCheck(err);
+
       throw new Error(err);
     });
 };
@@ -40,12 +43,15 @@ const emitEvent = (req, event, users, message = "") => {
   console.log("Event emitted:", event, users, message);
 };
 
+export const getSockets = (users = []) =>
+  users.map((user) => userSocketIDs.get(user.toString()));
+
 const deleteFilesFromCloudinary = async (publicIds) => {};
 
 export {
   connectDB,
-  sendToken,
   cookieOptions,
-  emitEvent,
   deleteFilesFromCloudinary,
+  emitEvent,
+  sendToken,
 };
