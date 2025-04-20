@@ -1,5 +1,5 @@
 import { compare } from "bcrypt";
-import { NEW_REQUEST, REFETCH_CHATS } from "../constants/events.js";
+import { NEW_REQUEST, REFETCH_CHATS } from "../utils/events.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import requestModel from "../models/request.models.js";
@@ -297,6 +297,5 @@ export {
   logout,
   newUser,
   searchUser,
-  sendFriendRequest
+  sendFriendRequest,
 };
-
