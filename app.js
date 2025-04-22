@@ -1,28 +1,34 @@
+import { v2 as cloudinary } from "cloudinary";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { config as envConfig } from "dotenv";
 import express from "express";
+import { createServer } from "http";
 import morgan from "morgan";
+import { Server } from "socket.io";
+import { v4 as uuid } from "uuid";
 import { errorMiddleware, TryCatch } from "./middlewares/error.js";
+import messageModel from "./models/message.models.js";
 import adminRouter from "./routes/admin.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import userRouter from "./routes/user.routes.js";
-import { connectDB, getSockets } from "./utils/features.js";
-import { Server } from "socket.io";
-import { createServer } from "http";
 import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./utils/events.js";
-import { v4 as uuid } from "uuid";
-import messageModel from "./models/message.models.js";
+import { connectDB, getSockets } from "./utils/features.js";
 
 envConfig({
   path: "./.env",
 });
 
-const mongoDB_uri = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV.trim() || "production";
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "Admin@1234";
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
+const CLIENT_URL = process.env.CLIENT_URL;
 
 if (!JWT_SECRET) {
   console.error("JWT Secret is not defined in the environment variables.");
@@ -53,20 +59,55 @@ if (!JWT_EXPIRES_IN) {
   process.exit(1);
 }
 
-if (!mongoDB_uri) {
+if (!MONGODB_URI) {
   console.error("MongoDB URI is not defined in the environment variables.");
   process.exit(1);
 }
 
-const app = express();
-const server = createServer(app);
+if (!CLOUDINARY_CLOUD_NAME) {
+  console.error(
+    "Cloudinary Cloud Name is not defined in the environment variables."
+  );
+  process.exit(1);
+}
 
-const io = new Server(server, {});
+if (!CLOUDINARY_API_KEY) {
+  console.error(
+    "Cloudinary API Key is not defined in the environment variables."
+  );
+  process.exit(1);
+}
+
+if (!CLOUDINARY_API_SECRET) {
+  console.error(
+    "Cloudinary API Secret is not defined in the environment variables."
+  );
+  process.exit(1);
+}
+
+if (!CLIENT_URL) {
+  console.error("Client URL is not defined in the environment variables.");
+  process.exit(1);
+}
+
+connectDB(MONGODB_URI);
+
+cloudinary.config({
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
+});
+
+const app = express();
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
+app.use(cors({ origin: [CLIENT_URL], credentials: true }));
 
-connectDB(mongoDB_uri);
+const server = createServer(app);
+const io = new Server(server, {});
+
 if (NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
@@ -79,9 +120,9 @@ app.get("/", (req, res) => {
   );
 });
 
-app.use("/user", userRouter);
-app.use("/chat", chatRouter);
-app.use("/admin", adminRouter);
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/admin", adminRouter);
 
 const userSocketIDs = new Map();
 
