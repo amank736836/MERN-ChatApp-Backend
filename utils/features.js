@@ -1,5 +1,7 @@
+import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { v4 as uuid } from "uuid";
 import { JWT_EXPIRES_IN, JWT_SECRET, userSocketIDs } from "../app.js";
 import { errCheck } from "../middlewares/error.js";
 
@@ -43,15 +45,58 @@ const emitEvent = (req, event, users, message = "") => {
   console.log("Event emitted:", event, users, message);
 };
 
-export const getSockets = (users = []) =>
+const getSockets = (users = []) =>
   users.map((user) => userSocketIDs.get(user.toString()));
 
-const deleteFilesFromCloudinary = async (publicIds) => {};
+const getBase64 = (file) =>
+  `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+
+const uploadFilesToCloudinary = async (files = []) => {
+  console.log(cloudinary.config());
+  const uploadPromises = files.map((file) => {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        getBase64(file),
+        { folder: "StealthyNote", resource_type: "auto", public_id: uuid() },
+
+        (error, result) => {
+          if (error) {
+            console.error("Error uploading file to Cloudinary:", error);
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+    });
+  });
+
+  try {
+    const results = await Promise.all(uploadPromises);
+
+    const formattedResults = results.map((result) => {
+      return {
+        public_id: result.public_id,
+        url: result.secure_url,
+      };
+    });
+
+    return formattedResults;
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    throw new Error("Failed to upload files to Cloudinary");
+  }
+};
+
+const deleteFilesFromCloudinary = async (publicIds = []) => {};
 
 export {
   connectDB,
   cookieOptions,
   deleteFilesFromCloudinary,
   emitEvent,
+  getBase64,
+  getSockets,
   sendToken,
+  uploadFilesToCloudinary,
 };
