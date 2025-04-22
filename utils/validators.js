@@ -23,7 +23,7 @@ const registerValidator = () => [
 ];
 
 const loginValidator = () => [
-  body("username", "email", "Please enter a username or email").notEmpty(),
+  body("username", "Please enter a username").notEmpty(),
   body("password", "Please enter a password").notEmpty(),
 ];
 
@@ -83,13 +83,17 @@ const adminLoginValidator = () => [
 ];
 
 export {
-  acceptRequestValidator, addMembersValidator, adminLoginValidator, idValidator,
+  acceptRequestValidator,
+  addMembersValidator,
+  adminLoginValidator,
+  idValidator,
   leaveGroupValidator,
   loginValidator,
   newGroupChatValidator,
   registerValidator,
   removeMembersValidator,
   renameGroupValidator,
-  sendAttachmentsValidator, sendRequestValidator, validateHandler
+  sendAttachmentsValidator,
+  sendRequestValidator,
+  validateHandler,
 };
-
