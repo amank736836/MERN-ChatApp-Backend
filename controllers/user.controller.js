@@ -4,12 +4,23 @@ import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import requestModel from "../models/request.models.js";
 import userModel from "../models/user.models.js";
-import { cookieOptions, emitEvent, sendToken } from "../utils/features.js";
+import {
+  cookieOptions,
+  emitEvent,
+  sendToken,
+  uploadFilesToCloudinary,
+} from "../utils/features.js";
 
 const newUser = TryCatch(async (req, res, next) => {
-  let name = req.body.name;
+  const { name, email, password, username } = req.body;
 
-  const { email, password, username } = req.body;
+  if (!name) {
+    return next(new ErrorHandler("Name is required", 400));
+  }
+
+  if (name.length < 3) {
+    return next(new ErrorHandler("Name must be at least 3 characters", 400));
+  }
 
   if (!email) return next(new ErrorHandler("Email is required", 400));
 
@@ -19,8 +30,28 @@ const newUser = TryCatch(async (req, res, next) => {
 
   if (!username) return next(new ErrorHandler("Username is required", 400));
 
-  if (!name) {
-    name = username || email.split("@")[0];
+  if (username.length < 3) {
+    return next(
+      new ErrorHandler("Username must be at least 3 characters", 400)
+    );
+  }
+
+  if (username.length > 30) {
+    return next(
+      new ErrorHandler("Username must be at most 30 characters", 400)
+    );
+  }
+
+  if (password.length < 6) {
+    return next(
+      new ErrorHandler("Password must be at least 6 characters", 400)
+    );
+  }
+
+  if (password.length > 30) {
+    return next(
+      new ErrorHandler("Password must be at most 30 characters", 400)
+    );
   }
 
   const file = req.file;
@@ -29,9 +60,11 @@ const newUser = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Avatar is required", 400));
   }
 
+  const result = await uploadFilesToCloudinary([file]);
+
   const avatar = {
-    public_id: "sample_public_id",
-    url: "https://example.com/sample_avatar.jpg",
+    public_id: result[0].public_id,
+    url: result[0].secure_url,
   };
 
   const user = await userModel.create({
@@ -46,18 +79,21 @@ const newUser = TryCatch(async (req, res, next) => {
 });
 
 const login = TryCatch(async (req, res, next) => {
-  const { username, password, email } = req.body;
+  const { username, password } = req.body;
 
-  if (!username && !email)
-    return next(new ErrorHandler("Username or email is required", 400));
+  console.log("Login request body:", req.body);
+
+  if (!username) return next(new ErrorHandler("Username is required", 400));
 
   if (!password) return next(new ErrorHandler("Password is required", 400));
 
   const user = await userModel
     .findOne({
-      $or: [{ username }, { email }],
+      $or: [{ username }, { email: username }],
     })
     .select("+password");
+
+  console.log("User found:", user);
 
   if (!user) return next(new ErrorHandler("User not found", 404));
 
