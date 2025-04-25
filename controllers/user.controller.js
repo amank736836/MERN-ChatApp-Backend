@@ -64,7 +64,7 @@ const newUser = TryCatch(async (req, res, next) => {
 
   const avatar = {
     public_id: result[0].public_id,
-    url: result[0].secure_url,
+    url: result[0].url,
   };
 
   const user = await userModel.create({
@@ -81,8 +81,6 @@ const newUser = TryCatch(async (req, res, next) => {
 const login = TryCatch(async (req, res, next) => {
   const { username, password } = req.body;
 
-  console.log("Login request body:", req.body);
-
   if (!username) return next(new ErrorHandler("Username is required", 400));
 
   if (!password) return next(new ErrorHandler("Password is required", 400));
@@ -92,8 +90,6 @@ const login = TryCatch(async (req, res, next) => {
       $or: [{ username }, { email: username }],
     })
     .select("+password");
-
-  console.log("User found:", user);
 
   if (!user) return next(new ErrorHandler("User not found", 404));
 
@@ -186,7 +182,7 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Request already received", 400));
   }
 
-  const newRequest = await requestModel.create({
+  await requestModel.create({
     sender: req.userId,
     receiver: userId,
   });
