@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  addMembers,
+  addGroupMembers,
   deleteChat,
   getChatDetails,
   getMessages,
@@ -34,14 +34,14 @@ chatRouter.use(isAuthenticated);
 // chatRouter.put("/addMembers", addMembers);
 // chatRouter.delete("/leave/:id", leaveGroup);
 
-chatRouter
-  .route("/")
-  .get(getMyChats)
-  .post(newGroupChatValidator(), validateHandler, newGroupChat)
-  .put(addMembersValidator(), validateHandler, addMembers)
-  .delete(leaveGroupValidator(), validateHandler, leaveGroup);
+chatRouter.get("/", getMyChats);
 
-chatRouter.get("/my/groups", getMyGroups);
+chatRouter
+  .route("/group")
+  .get(getMyGroups)
+  .post(newGroupChatValidator(), validateHandler, newGroupChat)
+  .put(addMembersValidator(), validateHandler, addGroupMembers)
+  .delete(leaveGroupValidator(), validateHandler, leaveGroup);
 
 chatRouter.put(
   "/removeMembers",
@@ -50,8 +50,6 @@ chatRouter.put(
   removeMembers
 );
 
-chatRouter.get("/message/:id", idValidator(), validateHandler, getMessages);
-
 chatRouter.post(
   "/message",
   attachmentsMulter,
@@ -59,6 +57,8 @@ chatRouter.post(
   validateHandler,
   sendAttachments
 );
+
+chatRouter.get("/message/:id", idValidator(), validateHandler, getMessages);
 
 chatRouter
   .route("/:id")
