@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { v4 as uuid } from "uuid";
 import { JWT_EXPIRES_IN, JWT_SECRET, userSocketIDs } from "../app.js";
-import { errCheck } from "../middlewares/error.js";
+import { errCheck, ErrorHandler } from "../middlewares/error.js";
 
 const connectDB = (url) => {
   mongoose
@@ -52,7 +52,6 @@ const getBase64 = (file) =>
   `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
 
 const uploadFilesToCloudinary = async (files = []) => {
-  console.log(cloudinary.config());
   const uploadPromises = files.map((file) => {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.upload(
@@ -84,7 +83,7 @@ const uploadFilesToCloudinary = async (files = []) => {
     return formattedResults;
   } catch (error) {
     console.error("Error uploading files:", error);
-    throw new Error("Failed to upload files to Cloudinary");
+    throw new ErrorHandler("Failed to upload files to Cloudinary");
   }
 };
 
@@ -98,5 +97,7 @@ export {
   getBase64,
   getSockets,
   sendToken,
-  uploadFilesToCloudinary,
+  uploadFilesToCloudinary
 };
+
+
