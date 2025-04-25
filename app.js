@@ -202,5 +202,6 @@ export {
   JWT_EXPIRES_IN,
   JWT_SECRET,
   NODE_ENV,
-  userSocketIDs,
+  userSocketIDs
 };
+
