@@ -2,7 +2,12 @@ import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { v4 as uuid } from "uuid";
-import { JWT_EXPIRES_IN, JWT_SECRET, userSocketIDs } from "../app.js";
+import {
+  cookieOptions,
+  JWT_EXPIRES_IN,
+  JWT_SECRET,
+  userSocketIDs,
+} from "../app.js";
 import { errCheck, ErrorHandler } from "../middlewares/error.js";
 
 const connectDB = (url) => {
@@ -18,15 +23,6 @@ const connectDB = (url) => {
     });
 };
 
-const JWT_COOKIE_EXPIRES_IN = process.env.JWT_COOKIE_EXPIRES_IN || 7;
-
-const cookieOptions = {
-  maxAge: JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-  httpOnly: true,
-  secure: process.env.NODE_ENV.trim() === "production" ? true : false,
-  sameSite: process.env.NODE_ENV.trim() === "production" ? "none" : "lax",
-};
-
 const sendToken = (res, user, code, message) => {
   const token = jwt.sign({ id: user._id }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
@@ -38,6 +34,7 @@ const sendToken = (res, user, code, message) => {
     .json({
       success: true,
       message,
+      user,
     });
 };
 
@@ -91,13 +88,10 @@ const deleteFilesFromCloudinary = async (publicIds = []) => {};
 
 export {
   connectDB,
-  cookieOptions,
   deleteFilesFromCloudinary,
   emitEvent,
   getBase64,
   getSockets,
   sendToken,
-  uploadFilesToCloudinary
+  uploadFilesToCloudinary,
 };
-
-
