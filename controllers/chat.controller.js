@@ -45,10 +45,11 @@ const getMyChats = TryCatch(async (req, res, next) => {
 
   const chats = await chatModel
     .find({ members: req.userId })
-    .populate("members", "name avatar");
+    .populate("members", "name avatar")
+    .sort({ updatedAt: -1 });
 
   const transformedChats = chats.map(({ _id, name, members, groupChat }) => {
-    const otherMember = members.filter(
+    const otherMember = members.find(
       (member) => member._id.toString() !== req.userId
     );
 
@@ -58,8 +59,13 @@ const getMyChats = TryCatch(async (req, res, next) => {
       groupChat,
       avatar: groupChat
         ? members.slice(0, 3).map(({ avatar }) => avatar.url)
-        : [otherMember[0].avatar.url],
-      members: otherMember.map(({ _id }) => _id),
+        : [otherMember.avatar.url],
+      members: members.reduce((acc, member) => {
+        if (member._id.toString() !== req.userId) {
+          acc.push(member._id);
+        }
+        return acc;
+      }, []),
     };
   });
 
@@ -479,9 +485,21 @@ const getMessages = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Chat ID is required", 400));
   }
 
+  console.log("Chat ID:", chatId);
+
   const limit = 20;
 
   const skip = (page - 1) * limit;
+
+  const chat = await chatModel.findById(chatId);
+
+  if (!chat) {
+    return next(new ErrorHandler("Chat not found", 404));
+  }
+
+  if (!chat.members.includes(req.userId.toString())) {
+    return next(new ErrorHandler("User not in the chat", 400));
+  }
 
   const [messages, totalMessagesCount] = await Promise.all([
     messageModel
@@ -503,7 +521,7 @@ const getMessages = TryCatch(async (req, res, next) => {
   return res.status(200).json({
     success: true,
     message: "Messages fetched successfully",
-    messages,
+    messages: messages.reverse(),
     totalPages,
   });
 });
