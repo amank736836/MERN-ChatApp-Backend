@@ -1,11 +1,11 @@
 import { compare } from "bcrypt";
-import { NEW_REQUEST, REFETCH_CHATS } from "../utils/events.js";
+import { cookieOptions } from "../app.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import requestModel from "../models/request.models.js";
 import userModel from "../models/user.models.js";
+import { NEW_REQUEST, REFETCH_CHATS } from "../utils/events.js";
 import {
-  cookieOptions,
   emitEvent,
   sendToken,
   uploadFilesToCloudinary,
@@ -329,5 +329,6 @@ export {
   logout,
   newUser,
   searchUser,
-  sendFriendRequest,
+  sendFriendRequest
 };
+
