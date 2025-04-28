@@ -7,6 +7,7 @@ import { createServer } from "http";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import { v4 as uuid } from "uuid";
+import { isSocketAuthenticated } from "./middlewares/auth.js";
 import { errorMiddleware, TryCatch } from "./middlewares/error.js";
 import messageModel from "./models/message.models.js";
 import adminRouter from "./routes/admin.routes.js";
@@ -25,10 +26,15 @@ const NODE_ENV = process.env.NODE_ENV.trim() || "production";
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "Admin@1234";
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_COOKIE_EXPIRES_IN = process.env.JWT_COOKIE_EXPIRES_IN || "7";
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const CLIENT_URL = process.env.CLIENT_URL;
+const CLIENT_PRODUCTION_URL = process.env.CLIENT_PRODUCTION_URL;
+const STEALTHY_NOTE_TOKEN_NAME = process.env.STEALTHY_NOTE_TOKEN_NAME;
+const STEALTHY_NOTE_ADMIN_TOKEN_NAME =
+  process.env.STEALTHY_NOTE_ADMIN_TOKEN_NAME;
 
 if (!JWT_SECRET) {
   console.error("JWT Secret is not defined in the environment variables.");
@@ -90,6 +96,13 @@ if (!CLIENT_URL) {
   process.exit(1);
 }
 
+if (!CLIENT_PRODUCTION_URL) {
+  console.error(
+    "Client Production URL is not defined in the environment variables."
+  );
+  process.exit(1);
+}
+
 connectDB(MONGODB_URI);
 
 cloudinary.config({
@@ -98,15 +111,27 @@ cloudinary.config({
   api_secret: CLOUDINARY_API_SECRET,
 });
 
+const cookieOptions = {
+  maxAge: JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  secure: process.env.NODE_ENV.trim() === "production" ? true : false,
+  sameSite: process.env.NODE_ENV.trim() === "production" ? "none" : "lax",
+};
+
+const corsOptions = {
+  origin: [CLIENT_URL, CLIENT_PRODUCTION_URL],
+  credentials: true,
+};
+
 const app = express();
+const server = createServer(app);
+
+const io = new Server(server, { cors: corsOptions });
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
-app.use(cors({ origin: [CLIENT_URL], credentials: true }));
-
-const server = createServer(app);
-const io = new Server(server, {});
 
 if (NODE_ENV === "production") {
   app.set("trust proxy", 1);
@@ -127,29 +152,25 @@ app.use("/api/v1/admin", adminRouter);
 const userSocketIDs = new Map();
 
 io.use((socket, next) => {
-  const token = socket.handshake.headers["authorization"]?.split(" ")[1];
-  if (!token) {
-    return next(new Error("Authentication error"));
-  }
-  next();
+  cookieParser()(
+    socket.request,
+    socket.request.res,
+    async (err) => await isSocketAuthenticated(err, socket, next)
+  );
 });
 
 io.on(
   "connection",
   TryCatch((socket) => {
-    console.log("User connected ", socket.id);
-
-    const user = {
-      _id: "67f7e0b18361a6b32f1b16b6",
-      name: "Aman",
-    };
+    const user = socket.user;
 
     userSocketIDs.set(user._id.toString(), socket.id);
 
     socket.on(NEW_MESSAGE, async ({ chatId, message, members }) => {
       const messageForRealTime = {
-        content: message,
         _id: uuid(),
+        attachments: [],
+        content: message,
         sender: {
           _id: user._id,
           name: user.name,
@@ -165,7 +186,11 @@ io.on(
         attachments: [],
       };
 
+      console.log("Emitting message to members:", members, messageForRealTime);
+
       const membersSocket = getSockets(members);
+
+      console.log("Members Socket IDs:", membersSocket);
 
       io.to(membersSocket).emit(NEW_MESSAGE, {
         chatId,
@@ -176,7 +201,7 @@ io.on(
         chatId,
       });
 
-      await messageModel.create(messageForDB);
+      messageModel.create(messageForDB);
     });
 
     socket.on("disconnect", () => {
@@ -199,8 +224,12 @@ server.listen(PORT, () => {
 
 export {
   ADMIN_SECRET_KEY,
+  cookieOptions,
+  JWT_COOKIE_EXPIRES_IN,
   JWT_EXPIRES_IN,
   JWT_SECRET,
   NODE_ENV,
   userSocketIDs,
+  STEALTHY_NOTE_TOKEN_NAME,
+  STEALTHY_NOTE_ADMIN_TOKEN_NAME,
 };
