@@ -13,7 +13,12 @@ import messageModel from "./models/message.models.js";
 import adminRouter from "./routes/admin.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import userRouter from "./routes/user.routes.js";
-import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./utils/events.js";
+import {
+  NEW_MESSAGE,
+  NEW_MESSAGE_ALERT,
+  START_TYPING,
+  STOP_TYPING,
+} from "./utils/events.js";
 import { connectDB, getSockets } from "./utils/features.js";
 
 envConfig({
@@ -129,6 +134,8 @@ const server = createServer(app);
 const io = new Server(server, { cors: corsOptions });
 app.use(cors(corsOptions));
 
+app.set("io", io);
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
@@ -186,11 +193,7 @@ io.on(
         attachments: [],
       };
 
-      console.log("Emitting message to members:", members, messageForRealTime);
-
       const membersSocket = getSockets(members);
-
-      console.log("Members Socket IDs:", membersSocket);
 
       io.to(membersSocket).emit(NEW_MESSAGE, {
         chatId,
@@ -202,6 +205,23 @@ io.on(
       });
 
       messageModel.create(messageForDB);
+    });
+
+    socket.on(START_TYPING, ({ chatId, members, senderId }) => {
+      const membersSocket = getSockets(members);
+      console.log("Members Socket", membersSocket);
+      socket.to(membersSocket).emit(START_TYPING, {
+        chatId,
+        senderId,
+      });
+    });
+
+    socket.on(STOP_TYPING, ({ chatId, members, senderId }) => {
+      const membersSocket = getSockets(members);
+      socket.to(membersSocket).emit(STOP_TYPING, {
+        chatId,
+        senderId,
+      });
     });
 
     socket.on("disconnect", () => {
