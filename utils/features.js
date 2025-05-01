@@ -38,12 +38,23 @@ const sendToken = (res, user, code, message) => {
     });
 };
 
-const emitEvent = (req, event, users, message = "") => {
-  console.log("Event emitted:", event, users, message);
-};
-
 const getSockets = (users = []) =>
-  users.map((user) => userSocketIDs.get(user.toString()));
+  users.map((user) => userSocketIDs.get(user._id.toString()));
+
+const emitEvent = (req, event, users, data) => {
+  const io = req.app.get("io");
+
+  if (!io) {
+    console.error("Socket.io instance is not available.");
+    return;
+  }
+
+  const usersSocket = getSockets(users);
+
+  io.to(usersSocket).emit(event, data);
+
+  console.log("Event emitted:", event, users, data);
+};
 
 const getBase64 = (file) =>
   `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
