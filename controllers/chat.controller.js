@@ -548,5 +548,5 @@ export {
   newGroupChat,
   removeMembers,
   renameGroup,
-  sendAttachments,
+  sendAttachments
 };
