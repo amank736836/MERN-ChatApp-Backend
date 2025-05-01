@@ -95,5 +95,5 @@ export {
   renameGroupValidator,
   sendAttachmentsValidator,
   sendRequestValidator,
-  validateHandler,
+  validateHandler
 };
