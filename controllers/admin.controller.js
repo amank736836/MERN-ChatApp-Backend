@@ -1,10 +1,9 @@
 import jwt from "jsonwebtoken";
-import { ADMIN_SECRET_KEY, JWT_SECRET } from "../app.js";
+import { ADMIN_SECRET_KEY, cookieOptions, JWT_SECRET } from "../app.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
 import userModel from "../models/user.models.js";
-import { cookieOptions } from "../app.js";
 
 const adminLogin = TryCatch(async (req, res, next) => {
   const { secretKey } = req.body;
@@ -240,5 +239,6 @@ export {
   allMessages,
   allUsers,
   getAdminData,
-  getDashboardStats,
+  getDashboardStats
 };
+
