@@ -1,14 +1,18 @@
-import {
-  ALERT,
-  NEW_ATTACHMENT,
-  NEW_MESSAGE_ALERT,
-  REFETCH_CHATS,
-} from "../utils/events.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
 import userModel from "../models/user.models.js";
-import { deleteFilesFromCloudinary, emitEvent } from "../utils/features.js";
+import {
+  ALERT,
+  NEW_MESSAGE,
+  NEW_MESSAGE_ALERT,
+  REFETCH_CHATS,
+} from "../utils/events.js";
+import {
+  deleteFilesFromCloudinary,
+  emitEvent,
+  uploadFilesToCloudinary,
+} from "../utils/features.js";
 
 const newGroupChat = TryCatch(async (req, res, next) => {
   const { name, otherMembers } = req.body;
@@ -23,14 +27,17 @@ const newGroupChat = TryCatch(async (req, res, next) => {
 
   const members = [...otherMembers, req.userId];
 
-  await chatModel.create({
+  const chat = await chatModel.create({
     name,
     members,
     groupChat: true,
     creator: req.userId,
   });
 
-  emitEvent(req, ALERT, members, `Welcome to ${name} group chat`);
+  emitEvent(req, ALERT, members, {
+    chatId: chat._id,
+    message: `Welcome to ${name} group chat`,
+  });
   emitEvent(req, REFETCH_CHATS, otherMembers);
 
   return res.status(201).json({
@@ -274,7 +281,11 @@ const leaveGroup = TryCatch(async (req, res, next) => {
     chat.save(),
   ]);
 
-  emitEvent(req, ALERT, otherMembers, `User ${user.name} has left the group`);
+  emitEvent(req, ALERT, otherMembers, {
+    chatId,
+
+    message: `User ${user.name} has left the group`,
+  });
 
   return res.status(200).json({
     success: true,
@@ -316,7 +327,7 @@ const sendAttachments = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("User not in the group", 400));
   }
 
-  const attachments = [];
+  const attachments = await uploadFilesToCloudinary(files);
 
   const messageForDB = {
     chat: chatId,
@@ -335,7 +346,7 @@ const sendAttachments = TryCatch(async (req, res, next) => {
 
   const message = await messageModel.create(messageForDB);
 
-  emitEvent(req, NEW_ATTACHMENT, chat.members, {
+  emitEvent(req, NEW_MESSAGE, chat.members, {
     message: messageForRealTime,
     chatId,
   });
@@ -527,15 +538,15 @@ const getMessages = TryCatch(async (req, res, next) => {
 });
 
 export {
-  getMyChats,
-  newGroupChat,
-  getMyGroups,
   addGroupMembers,
-  removeMembers,
-  leaveGroup,
-  sendAttachments,
-  getChatDetails,
-  renameGroup,
   deleteChat,
+  getChatDetails,
   getMessages,
+  getMyChats,
+  getMyGroups,
+  leaveGroup,
+  newGroupChat,
+  removeMembers,
+  renameGroup,
+  sendAttachments,
 };
