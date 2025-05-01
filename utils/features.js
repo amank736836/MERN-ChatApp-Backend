@@ -104,5 +104,5 @@ export {
   getBase64,
   getSockets,
   sendToken,
-  uploadFilesToCloudinary,
+  uploadFilesToCloudinary
 };
