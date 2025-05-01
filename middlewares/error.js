@@ -100,4 +100,5 @@ const TryCatch = (fn) => async (req, res, next) => {
   }
 };
 
-export { errorMiddleware, TryCatch, ErrorHandler, errCheck };
+export { errCheck, ErrorHandler, errorMiddleware, TryCatch };
+
