@@ -136,16 +136,36 @@ const searchUser = TryCatch(async (req, res, next) => {
 
   const allUsersFromMyChats = myChats.flatMap((chat) => chat.members);
 
+  allUsersFromMyChats.push(req.userId);
+
   const allUsersExceptMeAndFriends = await userModel.find({
     _id: { $nin: allUsersFromMyChats },
     name: { $regex: name, $options: "i" },
   });
 
-  const users = allUsersExceptMeAndFriends.map(({ _id, name, avatar }) => ({
-    id: _id,
-    name,
-    avatar: avatar.url,
-  }));
+  const allUsersRequest = await requestModel.find({
+    $or: [{ sender: req.userId }, { receiver: req.userId }],
+  });
+
+  const allUsersExceptMeAndFriendsWithoutRequest =
+    allUsersExceptMeAndFriends.filter(
+      (user) =>
+        !allUsersRequest.some(
+          (request) =>
+            (request.sender.toString() === user._id.toString() &&
+              request.receiver.toString() === req.userId) ||
+            (request.receiver.toString() === user._id.toString() &&
+              request.sender.toString() === req.userId)
+        )
+    );
+
+  const users = allUsersExceptMeAndFriendsWithoutRequest.map(
+    ({ _id, name, avatar }) => ({
+      id: _id,
+      name,
+      avatar: avatar.url,
+    })
+  );
 
   res.status(200).json({
     success: true,
@@ -162,6 +182,8 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
   if (userId === req.userId) {
     return next(new ErrorHandler("You cannot send a request to yourself", 400));
   }
+
+  console.log(userId, req.userId);
 
   const [requestSent, requestReceived] = await Promise.all([
     requestModel.findOne({
@@ -234,7 +256,7 @@ const acceptFriendRequest = TryCatch(async (req, res, next) => {
 
   const members = [request.sender._id, request.receiver._id];
 
-  const newChat = await chatModel.create({
+  await chatModel.create({
     members,
     name: `${request.sender.name} - ${request.receiver.name}`,
     groupChat: false,
@@ -242,7 +264,12 @@ const acceptFriendRequest = TryCatch(async (req, res, next) => {
 
   await request.deleteOne();
 
-  emitEvent(req, REFETCH_CHATS, [members], "Friend request accepted");
+  emitEvent(
+    req,
+    REFETCH_CHATS,
+    [request.sender._id],
+    "Friend request accepted"
+  );
 
   return res.status(200).json({
     success: true,
@@ -285,7 +312,7 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     })
     .populate("members", "name avatar");
 
-  const friends = chats.map(({ members }) => {
+  const friendsExceptMe = chats.map(({ members }) => {
     const otherMember = members.find(
       (member) => member._id.toString() !== req.userId
     );
@@ -297,12 +324,18 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     };
   });
 
+  const uniqueFriends = friendsExceptMe.filter(
+    (friend, index, self) =>
+      index ===
+      self.findIndex((f) => f._id.toString() === friend._id.toString())
+  );
+
   if (chatId) {
     const chat = await chatModel.findById(chatId);
 
     if (!chat) return next(new ErrorHandler("Chat not found", 404));
 
-    const availableFriends = friends.filter(
+    const availableFriends = uniqueFriends.filter(
       (friend) => !chat.members.includes(friend._id)
     );
 
@@ -315,7 +348,7 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "All friends",
-      friends,
+      friends: uniqueFriends,
     });
   }
 });
@@ -329,6 +362,5 @@ export {
   logout,
   newUser,
   searchUser,
-  sendFriendRequest
+  sendFriendRequest,
 };
-
