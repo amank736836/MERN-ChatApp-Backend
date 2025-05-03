@@ -37,6 +37,7 @@ userRouter.get("/me", getMyProfile);
 userRouter.get("/notifications", getMyNotifications);
 userRouter.get("/logout", logout);
 userRouter.get("/search", searchUser);
+userRouter.get("/friends", getMyFriends);
 
 userRouter.put(
   "/sendRequest",
@@ -51,7 +52,5 @@ userRouter.put(
   validateHandler,
   acceptFriendRequest
 );
-
-userRouter.get("/friends", getMyFriends);
 
 export default userRouter;
