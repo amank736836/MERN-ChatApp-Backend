@@ -1,5 +1,11 @@
 import mongoose, { model, Schema, Types } from "mongoose";
 
+const expiryTime = 1;
+
+let currentDate = new Date();
+
+currentDate.setMinutes(currentDate.getMinutes() + expiryTime);
+
 const chatSchema = new Schema(
   {
     name: {
