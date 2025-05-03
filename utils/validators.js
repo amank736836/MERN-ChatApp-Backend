@@ -47,7 +47,7 @@ const addMembersValidator = () => [
 
 const removeMembersValidator = () => [
   body("chatId", "Please enter a chat ID").notEmpty(),
-  body("userId", "Please enter a user ID").notEmpty(),
+  body("memberId", "Please enter a user ID").notEmpty(),
 ];
 
 const leaveGroupValidator = () => [
@@ -58,10 +58,12 @@ const sendAttachmentsValidator = () => [
   body("chatId", "Please enter a chat ID").notEmpty(),
 ];
 
-const idValidator = () => [param("id", "Please enter a chat ID").notEmpty()];
+const idValidator = () => [
+  param("chatId", "Please enter a chat ID").notEmpty(),
+];
 
 const renameGroupValidator = () => [
-  param("id", "Please enter a chat ID").notEmpty(),
+  param("chatId", "Please enter a chat ID").notEmpty(),
   body("name", "Please enter a group name").notEmpty(),
 ];
 
@@ -95,5 +97,5 @@ export {
   renameGroupValidator,
   sendAttachmentsValidator,
   sendRequestValidator,
-  validateHandler
+  validateHandler,
 };
