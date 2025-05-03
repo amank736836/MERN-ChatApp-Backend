@@ -209,7 +209,6 @@ io.on(
 
     socket.on(START_TYPING, ({ chatId, members, senderId }) => {
       const membersSocket = getSockets(members);
-      console.log("Members Socket", membersSocket);
       socket.to(membersSocket).emit(START_TYPING, {
         chatId,
         senderId,
@@ -248,5 +247,8 @@ export {
   JWT_COOKIE_EXPIRES_IN,
   JWT_EXPIRES_IN,
   JWT_SECRET,
-  NODE_ENV, STEALTHY_NOTE_ADMIN_TOKEN_NAME, STEALTHY_NOTE_TOKEN_NAME, userSocketIDs
+  NODE_ENV,
+  STEALTHY_NOTE_ADMIN_TOKEN_NAME,
+  STEALTHY_NOTE_TOKEN_NAME,
+  userSocketIDs,
 };
