@@ -38,8 +38,9 @@ const sendToken = (res, user, code, message) => {
     });
 };
 
-const getSockets = (users = []) =>
-  users.map((user) => userSocketIDs.get(user._id.toString()));
+const getSockets = (users = []) => {
+  return users.map((user) => userSocketIDs.get(user.toString()));
+};
 
 const emitEvent = (req, event, users, data) => {
   const io = req.app.get("io");
@@ -104,5 +105,5 @@ export {
   getBase64,
   getSockets,
   sendToken,
-  uploadFilesToCloudinary
+  uploadFilesToCloudinary,
 };
