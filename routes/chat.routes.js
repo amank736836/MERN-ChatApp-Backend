@@ -8,7 +8,7 @@ import {
   getMyGroups,
   leaveGroup,
   newGroupChat,
-  removeMembers,
+  removeMember,
   renameGroup,
   sendAttachments,
 } from "../controllers/chat.controller.js";
@@ -29,11 +29,6 @@ const chatRouter = Router();
 
 chatRouter.use(isAuthenticated);
 
-// chatRouter.get("/my", getMyChats);
-// chatRouter.post("/new", newGroupChat);
-// chatRouter.put("/addMembers", addMembers);
-// chatRouter.delete("/leave/:id", leaveGroup);
-
 chatRouter.get("/", getMyChats);
 
 chatRouter
@@ -44,10 +39,10 @@ chatRouter
   .delete(leaveGroupValidator(), validateHandler, leaveGroup);
 
 chatRouter.put(
-  "/removeMembers",
+  "/removeMember",
   removeMembersValidator(),
   validateHandler,
-  removeMembers
+  removeMember
 );
 
 chatRouter.post(
@@ -58,10 +53,10 @@ chatRouter.post(
   sendAttachments
 );
 
-chatRouter.get("/message/:id", idValidator(), validateHandler, getMessages);
+chatRouter.get("/message/:chatId", idValidator(), validateHandler, getMessages);
 
 chatRouter
-  .route("/:id")
+  .route("/:chatId")
   .get(idValidator(), validateHandler, getChatDetails)
   .put(renameGroupValidator(), validateHandler, renameGroup)
   .delete(idValidator(), validateHandler, deleteChat);
