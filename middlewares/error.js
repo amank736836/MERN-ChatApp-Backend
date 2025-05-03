@@ -7,7 +7,7 @@ class ErrorHandler extends Error {
   }
 }
 
-const errCheck = (err) => {
+const errCheck = async (err) => {
   if (err.code === 11000) {
     const error = Object.keys(err.keyPattern).join(", ");
     err.message = `Duplicate value entered for ${error} field, please use another value`;
@@ -76,8 +76,8 @@ const errCheck = (err) => {
   return err;
 };
 
-const errorMiddleware = (err, req, res, next) => {
-  err = errCheck(err);
+const errorMiddleware = async (err, req, res, next) => {
+  err = await errCheck(err);
 
   const response = {
     message: err.message,
@@ -101,4 +101,3 @@ const TryCatch = (fn) => async (req, res, next) => {
 };
 
 export { errCheck, ErrorHandler, errorMiddleware, TryCatch };
-
