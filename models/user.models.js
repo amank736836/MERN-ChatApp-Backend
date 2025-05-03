@@ -10,12 +10,6 @@ const userSchema = new Schema(
       minlength: 3,
       maxlength: 30,
     },
-    bio: {
-      type: String,
-      trim: true,
-      maxlength: 200,
-      default: "Welcome to my profile!",
-    },
     email: {
       type: String,
       required: true,
