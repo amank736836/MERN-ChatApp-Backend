@@ -521,7 +521,6 @@ const getMessages = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Chat ID is required", 400));
   }
 
-  console.log("Chat ID:", chatId);
 
   const limit = 20;
 
