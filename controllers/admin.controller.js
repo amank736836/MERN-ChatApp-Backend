@@ -50,17 +50,13 @@ const adminLogout = TryCatch(async (req, res, next) => {
 const getAdminData = TryCatch(async (req, res, next) => {
   return res.status(200).json({
     success: true,
-    message: "Admin data",
+    message: "Welcome to Stealthy Note Admin Dashboard",
     admin: true,
   });
 });
 
 const allUsers = TryCatch(async (req, res, next) => {
   const users = await userModel.find({}).sort({ createdAt: -1 });
-
-  if (!users) {
-    return next(new ErrorHandler("No users found", 404));
-  }
 
   const transformedUsers = await Promise.all(
     users.map(async ({ _id, name, avatar, email, username, createdAt }) => {
@@ -95,10 +91,6 @@ const allChats = TryCatch(async (req, res, next) => {
     .sort({ createdAt: -1 })
     .populate("members", "name avatar")
     .populate("creator", "name avatar");
-
-  if (!chats) {
-    return next(new ErrorHandler("No chats found", 404));
-  }
 
   const transformedChats = await Promise.all(
     chats.map(async ({ _id, name, groupChat, members, creator }) => {
@@ -145,10 +137,6 @@ const allMessages = TryCatch(async (req, res, next) => {
     .populate("sender", "name avatar")
     .populate("chat", "groupChat");
 
-  if (!messages) {
-    return next(new ErrorHandler("No messages found", 404));
-  }
-
   const transformedMessages = messages.map(
     ({ _id, content, sender, chat, attachments, createdAt }) => ({
       _id,
@@ -180,22 +168,6 @@ const getDashboardStats = TryCatch(async (req, res, next) => {
       chatModel.countDocuments(),
       messageModel.countDocuments(),
     ]);
-
-  if (!groupChatCount) {
-    return next(new ErrorHandler("No group chats found", 404));
-  }
-
-  if (!totalUsers) {
-    return next(new ErrorHandler("No users found", 404));
-  }
-
-  if (!totalChats) {
-    return next(new ErrorHandler("No chats found", 404));
-  }
-
-  if (!totalMessages) {
-    return next(new ErrorHandler("No messages found", 404));
-  }
 
   const today = new Date();
 
@@ -239,6 +211,5 @@ export {
   allMessages,
   allUsers,
   getAdminData,
-  getDashboardStats
+  getDashboardStats,
 };
-
