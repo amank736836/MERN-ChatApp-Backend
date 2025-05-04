@@ -8,13 +8,17 @@ const createSingleChat = async (chatsCount) => {
 
     const chatsPromise = [];
 
-    for (let i = 0; i < users.length; i++) {
-      for (let j = i + 1; j < users.length; j++) {
+    let maxChats = users.length < chatsCount ? users.length : chatsCount;
+
+
+    for (let i = 0; i < maxChats; i++) {
+      for (let j = i + 1; j < maxChats; j++) {
         chatsPromise.push(
           chatModel.create({
             name: `${users[i].name} - ${users[j].name}`,
             groupChat: false,
             members: [users[i]._id, users[j]._id],
+            creator: users[i]._id,
           })
         );
       }
@@ -71,4 +75,3 @@ const createGroupChat = async (chatsCount) => {
   }
 };
 export { createGroupChat, createSingleChat };
-
