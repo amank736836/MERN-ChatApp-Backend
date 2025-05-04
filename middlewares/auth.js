@@ -81,7 +81,7 @@ const isSocketAuthenticated = async (err, socket, next) => {
 
     return next();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return next(
       new ErrorHandler(error?.message || "Socket authentication error", 401)
     );
