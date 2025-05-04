@@ -53,8 +53,6 @@ const emitEvent = (req, event, users, data) => {
   const usersSocket = getSockets(users);
 
   io.to(usersSocket).emit(event, data);
-
-  console.log("Event emitted:", event, users, data);
 };
 
 const getBase64 = (file) =>
