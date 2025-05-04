@@ -6,16 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "SET NODE_ENV=production && node app.js",
-    "dev": "SET NODE_ENV=development && nodemon app.js",
-    "bunDev": "bun --watch app.js",
-    "bunBuild": "bun build app.js --outdir=dist",
-    "bunStart": "bun app.js",
-    "bunBuildDev": "bun build app.js --outdir=dist --watch",
-    "bunStartDev": "bun app.js --watch",
-    "bunBuildProd": "bun build app.js --outdir=dist --minify",
-    "bunStartProd": "bun dist/app.js",
-    "bunHotReload": "bun --hot app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
