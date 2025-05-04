@@ -183,8 +183,6 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("You cannot send a request to yourself", 400));
   }
 
-  console.log(userId, req.userId);
-
   const [requestSent, requestReceived] = await Promise.all([
     requestModel.findOne({
       sender: req.userId,
@@ -260,6 +258,7 @@ const acceptFriendRequest = TryCatch(async (req, res, next) => {
     members,
     name: `${request.sender.name} - ${request.receiver.name}`,
     groupChat: false,
+    creator: req.userId,
   });
 
   await request.deleteOne();
