@@ -78,7 +78,7 @@ const newUser = TryCatch(async (req, res, next) => {
   const chat = await chatModel.create({
     _id: user._id,
     members: [user._id],
-    groupChat: false,
+    groupChat: true,
     name: user.name,
     creator: user._id,
   });
