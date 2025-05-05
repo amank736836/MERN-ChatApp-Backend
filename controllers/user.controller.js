@@ -319,11 +319,15 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     })
     .populate("members", "name avatar");
 
-  const friendsExceptMe = chats.map(({ members }) => {
-    const otherMember = members.find(
-      (member) => member._id.toString() !== req.userId
-    );
-
+  const friendsExceptMe = chats.map(({ _id, members }) => {
+    let otherMember = null;
+    if (_id.toString() !== req.userId) {
+      otherMember = members.find(
+        (member) => member._id.toString() !== req.userId
+      );
+    } else {
+      otherMember = members[0];
+    }
     return {
       _id: otherMember._id,
       name: otherMember.name,
@@ -331,11 +335,15 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     };
   });
 
-  const uniqueFriends = friendsExceptMe.filter(
-    (friend, index, self) =>
-      index ===
-      self.findIndex((f) => f._id.toString() === friend._id.toString())
-  );
+  console.log("friendsExceptMe", friendsExceptMe);
+
+  const uniqueFriends = friendsExceptMe
+    .filter(
+      (friend, index, self) =>
+        index ===
+        self.findIndex((f) => f._id.toString() === friend._id.toString())
+    )
+    .filter((user) => user._id.toString() !== req.userId.toString());
 
   if (chatId) {
     const chat = await chatModel.findById(chatId);
