@@ -16,6 +16,7 @@ import {
   emitEvent,
   uploadFilesToCloudinary,
 } from "../utils/features.js";
+import { ne } from "@faker-js/faker";
 
 const newGroupChat = TryCatch(async (req, res, next) => {
   const { name, otherMembers } = req.body;
@@ -564,6 +565,15 @@ const getMessages = TryCatch(async (req, res, next) => {
     }),
   ]);
 
+  if (chatId === req.userId) {
+    messages.forEach((message) => {
+      message.sender = {
+        _id: req.userId,
+        name: "Anonymous",
+      };
+    });
+  }
+
   const totalPages = Math.ceil(totalMessagesCount / limit) || 1;
 
   return res.status(200).json({
@@ -610,20 +620,14 @@ const suggestMessages = TryCatch(async (req, res, next) => {
 });
 
 const sendMessage = TryCatch(async (req, res, next) => {
-  const { username, content } = req.body;
+  const { username, content, sender } = req.body;
 
   if (!username) {
-    return res.status(400).json({
-      success: false,
-      message: "Username is required",
-    });
+    return next(new ErrorHandler("Username is required", 400));
   }
 
   if (!content) {
-    return res.status(400).json({
-      success: false,
-      message: "Content is required",
-    });
+    return next(new ErrorHandler("Message content is required", 400));
   }
 
   const user = await userModel.findOne({ username });
@@ -647,15 +651,15 @@ const sendMessage = TryCatch(async (req, res, next) => {
   const messageForDB = {
     chat: chat._id,
     content: content,
-    sender: user._id,
+    sender: sender ? sender._id : user._id,
     attachments: [],
   };
 
   const messageForRealTime = {
     ...messageForDB,
     sender: {
-      _id: user._id,
-      name: user.name,
+      _id: sender ? sender._id : user._id,
+      name: "Anonymous",
     },
     _id: uuid(),
     createdAt: new Date().toISOString(),
