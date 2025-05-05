@@ -75,6 +75,14 @@ const newUser = TryCatch(async (req, res, next) => {
     avatar,
   });
 
+  const chat = await chatModel.create({
+    _id: user._id,
+    members: [user._id],
+    groupChat: false,
+    name: user.name,
+    creator: user._id,
+  });
+
   sendToken(res, user, 201, "User created successfully");
 });
 
