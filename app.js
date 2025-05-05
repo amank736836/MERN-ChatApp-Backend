@@ -276,5 +276,5 @@ export {
   NODE_ENV,
   STEALTHY_NOTE_ADMIN_TOKEN_NAME,
   STEALTHY_NOTE_TOKEN_NAME,
-  userSocketIDs,
+  userSocketIDs
 };
