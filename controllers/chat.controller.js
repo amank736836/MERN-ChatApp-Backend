@@ -1,3 +1,6 @@
+import { google } from "@ai-sdk/google";
+import { streamText } from "ai";
+import { v4 as uuid } from "uuid";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import messageModel from "../models/message.models.js";
@@ -62,14 +65,23 @@ const getMyChats = TryCatch(async (req, res, next) => {
     .populate("members", "name avatar")
     .sort({ updatedAt: -1 });
 
+  console.log("chats", chats);
+
   const transformedChats = chats.map(({ _id, name, members, groupChat }) => {
-    const otherMember = members.find(
-      (member) => member._id.toString() !== req.userId
-    );
+    let otherMember = null;
+    if (_id.toString() !== req.userId) {
+      otherMember = members.find(
+        (member) => member._id.toString() !== req.userId
+      );
+    } else {
+      otherMember = members[0];
+    }
+
+    console.log("otherMember", otherMember);
 
     return {
       _id,
-      name: groupChat ? name : otherMember.name,
+      name: groupChat ? name : otherMember?.name,
       groupChat,
       avatar: groupChat
         ? members.slice(0, 3).map(({ avatar }) => avatar.url)
@@ -363,6 +375,8 @@ const sendAttachments = TryCatch(async (req, res, next) => {
       _id: req.userId,
       name: user.name,
     },
+    _id: uuid(),
+    createdAt: new Date().toISOString(),
   };
 
   const message = await messageModel.create(messageForDB);
@@ -521,7 +535,6 @@ const getMessages = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Chat ID is required", 400));
   }
 
-
   const limit = 20;
 
   const skip = (page - 1) * limit;
@@ -561,6 +574,106 @@ const getMessages = TryCatch(async (req, res, next) => {
   });
 });
 
+const suggestMessages = TryCatch(async (req, res, next) => {
+  const { exclude = "" } = req.body;
+
+  const prompt = `Create a list of three open-ended and engaging questions formatted as a single string.
+    Each question should be separated by '||'. The questions are for an anonymous social messaging platform,
+    and should be suitable for a diverse audience. Avoid personal or sensitive topics.
+    Ensure the questions are intriguing and foster curiosity.
+    DO NOT INCLUDE any of the following questions: ${exclude || "None"}.
+    Each question MUST be at most 100 characters long.`;
+
+  const { textStream } = await streamText({
+    model: google("gemini-1.5-flash-8b-latest"),
+    prompt: prompt,
+    maxRetries: 3,
+  });
+
+  if (!textStream) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate questions. Please try again.",
+    });
+  }
+
+  let result = "";
+  for await (const delta of textStream) {
+    result += delta;
+    console.log(delta);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: result,
+  });
+});
+
+const sendMessage = TryCatch(async (req, res, next) => {
+  const { username, content } = req.body;
+
+  if (!username) {
+    return res.status(400).json({
+      success: false,
+      message: "Username is required",
+    });
+  }
+
+  if (!content) {
+    return res.status(400).json({
+      success: false,
+      message: "Content is required",
+    });
+  }
+
+  const user = await userModel.findOne({ username });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  const chat = await chatModel.findById(user._id);
+
+  if (!chat) {
+    return res.status(404).json({
+      success: false,
+      message: "Chat not found",
+    });
+  }
+
+  const messageForDB = {
+    chat: chat._id,
+    content: content,
+    sender: user._id,
+    attachments: [],
+  };
+
+  const messageForRealTime = {
+    ...messageForDB,
+    sender: {
+      _id: user._id,
+      name: user.name,
+    },
+    _id: uuid(),
+    createdAt: new Date().toISOString(),
+  };
+
+  const message = await messageModel.create(messageForDB);
+
+  emitEvent(req, NEW_MESSAGE, [user._id], {
+    chatId: chat._id,
+    message: messageForRealTime,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Message sent successfully",
+  });
+});
+
 export {
   addGroupMembers,
   deleteChat,
@@ -573,4 +686,6 @@ export {
   removeMember,
   renameGroup,
   sendAttachments,
+  sendMessage,
+  suggestMessages,
 };
