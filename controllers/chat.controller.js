@@ -605,7 +605,6 @@ const suggestMessages = TryCatch(async (req, res, next) => {
   let result = "";
   for await (const delta of textStream) {
     result += delta;
-    console.log(delta);
   }
 
   return res.status(200).json({
@@ -686,6 +685,5 @@ export {
   renameGroup,
   sendAttachments,
   sendMessage,
-  suggestMessages
+  suggestMessages,
 };
-
