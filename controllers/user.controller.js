@@ -335,7 +335,6 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     };
   });
 
-  console.log("friendsExceptMe", friendsExceptMe);
 
   const uniqueFriends = friendsExceptMe
     .filter(
