@@ -77,7 +77,6 @@ const errCheck = async (err) => {
 };
 
 const errorMiddleware = async (err, req, res, next) => {
-  console.log(err);
   err = await errCheck(err);
 
   const response = {
