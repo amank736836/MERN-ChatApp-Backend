@@ -16,7 +16,6 @@ import {
   emitEvent,
   uploadFilesToCloudinary,
 } from "../utils/features.js";
-import { ne } from "@faker-js/faker";
 
 const newGroupChat = TryCatch(async (req, res, next) => {
   const { name, otherMembers } = req.body;
@@ -687,5 +686,6 @@ export {
   renameGroup,
   sendAttachments,
   sendMessage,
-  suggestMessages,
+  suggestMessages
 };
+
