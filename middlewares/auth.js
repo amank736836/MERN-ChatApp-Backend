@@ -11,8 +11,6 @@ import { ErrorHandler, TryCatch } from "./error.js";
 const isAuthenticated = TryCatch((req, res, next) => {
   const token = req.cookies[STEALTHY_NOTE_TOKEN_NAME];
 
-  console.log("Token: ", token);
-
   if (!token) {
     return next(new ErrorHandler("Please Login to access this resource", 401));
   }
