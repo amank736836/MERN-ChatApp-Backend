@@ -29,4 +29,3 @@ const createUser = async (usersCount) => {
 };
 
 export { createUser };
-
