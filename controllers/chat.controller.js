@@ -66,8 +66,6 @@ const getMyChats = TryCatch(async (req, res, next) => {
     .populate("members", "name avatar")
     .sort({ updatedAt: -1 });
 
-  console.log("chats", chats);
-
   const transformedChats = chats.map(({ _id, name, members, groupChat }) => {
     let otherMember = null;
     if (_id.toString() !== req.userId) {
@@ -77,8 +75,6 @@ const getMyChats = TryCatch(async (req, res, next) => {
     } else {
       otherMember = members[0];
     }
-
-    console.log("otherMember", otherMember);
 
     return {
       _id,
