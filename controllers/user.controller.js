@@ -375,7 +375,7 @@ const acceptMessages = TryCatch(async (req, res, next) => {
 
   const user = await userModel.findByIdAndUpdate(
     req.userId,
-    { isAcceptingMessage: isAcceptingMessages },
+    { isAcceptingMessages: isAcceptingMessages },
     { new: true, runValidators: true }
   );
 
