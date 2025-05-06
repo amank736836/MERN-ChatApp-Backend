@@ -56,6 +56,10 @@ const userSchema = new Schema(
         required: true,
       },
     },
+    isAcceptingMessage: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
