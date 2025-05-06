@@ -627,19 +627,17 @@ const sendMessage = TryCatch(async (req, res, next) => {
   const user = await userModel.findOne({ username });
 
   if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found",
-    });
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (!user.isAcceptingMessages) {
+    return next(new ErrorHandler("User is not accepting messages", 400));
   }
 
   const chat = await chatModel.findById(user._id);
 
   if (!chat) {
-    return res.status(404).json({
-      success: false,
-      message: "Chat not found",
-    });
+    return next(new ErrorHandler("Chat not found", 404));
   }
 
   const messageForDB = {
