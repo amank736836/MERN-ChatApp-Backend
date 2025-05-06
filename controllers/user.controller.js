@@ -335,7 +335,6 @@ const getMyFriends = TryCatch(async (req, res, next) => {
     };
   });
 
-
   const uniqueFriends = friendsExceptMe
     .filter(
       (friend, index, self) =>
@@ -367,6 +366,29 @@ const getMyFriends = TryCatch(async (req, res, next) => {
   }
 });
 
+const acceptMessages = TryCatch(async (req, res, next) => {
+  const { isAcceptingMessages } = req.body;
+
+  if (isAcceptingMessages === undefined) {
+    return next(new ErrorHandler("isAcceptingMessages is required", 400));
+  }
+
+  const user = await userModel.findByIdAndUpdate(
+    req.userId,
+    { isAcceptingMessage: isAcceptingMessages },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  res.status(200).json({
+    success: true,
+    message: `You are now ${
+      isAcceptingMessages ? "accepting" : "not accepting"
+    } messages`,
+  });
+});
+
 export {
   acceptFriendRequest,
   getMyFriends,
@@ -377,4 +399,5 @@ export {
   newUser,
   searchUser,
   sendFriendRequest,
+  acceptMessages,
 };
