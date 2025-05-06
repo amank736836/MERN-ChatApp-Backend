@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   acceptFriendRequest,
+  acceptMessages,
   getMyFriends,
   getMyNotifications,
   getMyProfile,
@@ -38,6 +39,7 @@ userRouter.get("/notifications", getMyNotifications);
 userRouter.get("/logout", logout);
 userRouter.get("/search", searchUser);
 userRouter.get("/friends", getMyFriends);
+userRouter.post("/acceptMessages", acceptMessages);
 
 userRouter.put(
   "/sendRequest",
