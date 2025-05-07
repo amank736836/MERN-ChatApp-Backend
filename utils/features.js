@@ -98,10 +98,10 @@ const deleteFilesFromCloudinary = async (publicIds = []) => {};
 
 export {
   connectDB,
-  deleteFilesFromCloudinary,
-  emitEvent,
-  getBase64,
-  getSockets,
   sendToken,
+  emitEvent,
+  getSockets,
+  getBase64,
   uploadFilesToCloudinary,
+  deleteFilesFromCloudinary,
 };
