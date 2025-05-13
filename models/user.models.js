@@ -42,9 +42,6 @@ const userSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      minlength: 6,
-      maxlength: 30,
-      select: false,
     },
     avatar: {
       public_id: {
@@ -59,6 +56,18 @@ const userSchema = new Schema(
     isAcceptingMessage: {
       type: Boolean,
       default: true,
+    },
+    verifyCode: {
+      type: String,
+      default: null,
+    },
+    verifyCodeExpiry: {
+      type: Date,
+      default: null,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   {
