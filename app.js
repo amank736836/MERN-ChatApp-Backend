@@ -23,6 +23,12 @@ import {
   STOP_TYPING,
 } from "./utils/events.js";
 import { connectDB, getSockets } from "./utils/features.js";
+import { createUser } from "./seeders/user.seeder.js";
+import {
+  createMessageInChat,
+  createMessages,
+} from "./seeders/message.seeder.js";
+import { createGroupChat, createSingleChat } from "./seeders/chat.seeder.js";
 
 envConfig({
   path: "./.env",
@@ -261,9 +267,9 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT} in ${NODE_ENV} mode`);
 });
 
-// createUser(10);
+// createUser(20);
 // createMessageInChat("681705f74b713bef198acf99", 50);
-// createSingleChat(10);
+// createSingleChat(100);
 // createGroupChat(27);
 // createMessages(3256);
 
@@ -276,5 +282,5 @@ export {
   NODE_ENV,
   STEALTHY_NOTE_ADMIN_TOKEN_NAME,
   STEALTHY_NOTE_TOKEN_NAME,
-  userSocketIDs
+  userSocketIDs,
 };
