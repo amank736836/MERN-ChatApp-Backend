@@ -23,12 +23,6 @@ import {
   STOP_TYPING,
 } from "./utils/events.js";
 import { connectDB, getSockets } from "./utils/features.js";
-import { createUser } from "./seeders/user.seeder.js";
-import {
-  createMessageInChat,
-  createMessages,
-} from "./seeders/message.seeder.js";
-import { createGroupChat, createSingleChat } from "./seeders/chat.seeder.js";
 
 envConfig({
   path: "./.env",
@@ -282,5 +276,5 @@ export {
   NODE_ENV,
   STEALTHY_NOTE_ADMIN_TOKEN_NAME,
   STEALTHY_NOTE_TOKEN_NAME,
-  userSocketIDs,
+  userSocketIDs
 };
