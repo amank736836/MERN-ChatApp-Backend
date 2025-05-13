@@ -23,8 +23,29 @@ const registerValidator = () => [
 ];
 
 const loginValidator = () => [
-  body("username", "Please enter a username").notEmpty(),
+  body("identifier", "Please enter a username or email").notEmpty(),
   body("password", "Please enter a password").notEmpty(),
+];
+
+const verifyValidator = () => [
+  body("identifier", "Please enter a username").notEmpty(),
+  body("verifyCode", "Please enter a valid verification code").notEmpty(),
+];
+
+const forgotPasswordValidator = () => [
+  body("identifier", "Please enter a valid email or username").notEmpty(),
+];
+
+const updatePasswordValidator = () => [
+  body("identifier", "Please enter a valid email or username").notEmpty(),
+  body("password", "Please enter a password").notEmpty(),
+  body("verifyCode", "Please enter a valid verification code").notEmpty(),
+];
+
+const isAcceptingMessagesValidator = () => [
+  body("isAcceptingMessage")
+    .isBoolean()
+    .withMessage("Please enter a boolean value"),
 ];
 
 const newGroupChatValidator = () => [
@@ -98,4 +119,8 @@ export {
   sendAttachmentsValidator,
   sendRequestValidator,
   validateHandler,
+  forgotPasswordValidator,
+  isAcceptingMessagesValidator,
+  updatePasswordValidator,
+  verifyValidator,
 };
