@@ -25,9 +25,6 @@ const newGroupChat = TryCatch(async (req, res, next) => {
   if (!otherMembers || otherMembers.length === 0)
     return next(new ErrorHandler("Group members are required", 400));
 
-  if (otherMembers.length < 1)
-    return next(new ErrorHandler("At least one member is required", 400));
-
   const members = [...otherMembers, req.userId];
 
   const chat = await chatModel.create({
@@ -525,6 +522,7 @@ const deleteChat = TryCatch(async (req, res, next) => {
 
 const getMessages = TryCatch(async (req, res, next) => {
   const { chatId } = req.params;
+
   const { page = 1 } = req.query;
 
   if (!chatId) {
@@ -630,11 +628,13 @@ const sendMessage = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
 
-  if (!user.isAcceptingMessages) {
+  if (!user.isAcceptingMessage) {
     return next(new ErrorHandler("User is not accepting messages", 400));
   }
 
   const chat = await chatModel.findById(user._id);
+
+  console.log(chat);
 
   if (!chat) {
     return next(new ErrorHandler("Chat not found", 404));
@@ -658,6 +658,8 @@ const sendMessage = TryCatch(async (req, res, next) => {
   };
 
   const message = await messageModel.create(messageForDB);
+
+  console.log(message);
 
   emitEvent(req, NEW_MESSAGE, [user._id], {
     chatId: chat._id,
