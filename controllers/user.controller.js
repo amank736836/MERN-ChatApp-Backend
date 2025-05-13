@@ -3,13 +3,15 @@ import { cookieOptions } from "../app.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
 import requestModel from "../models/request.models.js";
-import userModel from "../models/user.models.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../utils/events.js";
 import {
   emitEvent,
+  sendForgotPasswordEmail,
   sendToken,
+  sendVerificationEmail,
   uploadFilesToCloudinary,
 } from "../utils/features.js";
+import userModel from "../models/user.models.js";
 
 const newUser = TryCatch(async (req, res, next) => {
   const { name, email, password, username } = req.body;
@@ -56,46 +58,102 @@ const newUser = TryCatch(async (req, res, next) => {
 
   const file = req.file;
 
-  if (!file) {
-    return next(new ErrorHandler("Avatar is required", 400));
-  }
+  // if (!file) {
+  //   return next(new ErrorHandler("Avatar is required", 400));
+  // }
 
-  const result = await uploadFilesToCloudinary([file]);
-
-  const avatar = {
-    public_id: result[0].public_id,
-    url: result[0].url,
+  let avatar = {
+    public_id: "StealthyNote/c348f2a5-adba-4a0d-90b6-b93f21cacf1a",
+    url: "https://res.cloudinary.com/amank736836/image/upload/v1747106860/StealthyNote/c348f2a5-adba-4a0d-90b6-b93f21cacf1a.jpg",
   };
 
-  const user = await userModel.create({
-    name,
+  if (file) {
+    const result = await uploadFilesToCloudinary([file]);
+    avatar = {
+      public_id: result[0].public_id,
+      url: result[0].url,
+    };
+  }
+
+  const existingUserVerifiedByUsername = await userModel.findOne({
+    username,
+    isVerified: true,
+  });
+
+  if (existingUserVerifiedByUsername) {
+    return next(new ErrorHandler("Username already exists", 400));
+  }
+
+  const existingUserByEmail = await userModel.findOne({
+    email,
+  });
+
+  const verifyCode = Math.floor(100000 + Math.random() * 900000);
+
+  const verifyCodeExpiry = new Date();
+  verifyCodeExpiry.setHours(verifyCodeExpiry.getHours() + 1);
+
+  if (existingUserByEmail) {
+    if (existingUserByEmail.isVerified) {
+      return next(new ErrorHandler("Email already exists", 400));
+    } else {
+      existingUserByEmail.name = name;
+      existingUserByEmail.avatar = avatar;
+      existingUserByEmail.username = username;
+      existingUserByEmail.password = password;
+      existingUserByEmail.verifyCode = verifyCode;
+      existingUserByEmail.verifyCodeExpiry = verifyCodeExpiry;
+
+      await existingUserByEmail.save();
+    }
+  } else {
+    const user = await userModel.create({
+      name,
+      username,
+      email,
+      avatar,
+      password,
+      verifyCode,
+      verifyCodeExpiry,
+    });
+    const chat = await chatModel.create({
+      _id: user._id,
+      members: [user._id],
+      groupChat: true,
+      name: user.name,
+      creator: user._id,
+    });
+  }
+
+  const baseUrl = req.headers.origin;
+
+  const emailResponse = await sendVerificationEmail({
+    baseUrl,
     email,
     username,
-    password,
-    avatar,
+    verifyCode,
   });
 
-  const chat = await chatModel.create({
-    _id: user._id,
-    members: [user._id],
-    groupChat: true,
-    name: user.name,
-    creator: user._id,
-  });
+  if (!emailResponse.success) {
+    return next(new ErrorHandler("Failed to send email", 500));
+  }
 
-  sendToken(res, user, 201, "User created successfully");
+  return res.status(200).json({
+    success: true,
+    message: "User created successfully. Please verify your email.",
+  });
 });
 
 const login = TryCatch(async (req, res, next) => {
-  const { username, password } = req.body;
+  const { identifier, password } = req.body;
 
-  if (!username) return next(new ErrorHandler("Username is required", 400));
+  if (!identifier) return next(new ErrorHandler("Username is required", 400));
 
   if (!password) return next(new ErrorHandler("Password is required", 400));
 
   const user = await userModel
     .findOne({
-      $or: [{ username }, { email: username }],
+      $or: [{ username: identifier }, { email: identifier }],
     })
     .select("+password");
 
@@ -105,7 +163,197 @@ const login = TryCatch(async (req, res, next) => {
 
   if (!isMatch) return next(new ErrorHandler("Invalid password", 401));
 
+
+  if (!user.isVerified) {
+    if (user.verifyCodeExpiry < new Date()) {
+      const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const verifyCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+      user.verifyCode = verifyCode;
+      user.verifyCodeExpiry = verifyCodeExpiry;
+
+      const res = await user.save();
+
+      console.log(res);
+
+      const baseUrl = req.headers.origin;
+      const emailResponse = await sendVerificationEmail({
+        baseUrl,
+        email: user.email,
+        username: user.username,
+        verifyCode,
+      });
+
+      console.log(emailResponse);
+
+      if (!emailResponse.success) {
+        return next(new ErrorHandler("Failed to send verification email", 500));
+      }
+
+      return next(
+        new ErrorHandler(
+          "Please verify your account. A new verification code has been sent to your email.",
+          400
+        )
+      );
+    } else {
+      return next(
+        new ErrorHandler(
+          "Please verify your account. A verification code has been sent to your email.",
+          400
+        )
+      );
+    }
+  }
+
   sendToken(res, user, 200, "Welcome Back!");
+});
+
+const forgotPassword = TryCatch(async (req, res, next) => {
+  const { identifier } = req.body;
+
+  if (!identifier) {
+    return next(new ErrorHandler("Identifier is required", 400));
+  }
+
+  const user = await userModel.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  });
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const verifyCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  user.verifyCode = verifyCode;
+  user.verifyCodeExpiry = verifyCodeExpiry;
+  await user.save();
+
+  const baseUrl = req.headers.origin;
+
+  const emailResponse = await sendForgotPasswordEmail({
+    baseUrl,
+    username: user.username,
+    email: user.email,
+    verifyCode,
+  });
+
+  if (!emailResponse.success) {
+    return next(new ErrorHandler("Failed to send email", 500));
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Forgot password code sent successfully. Please check your email.",
+  });
+});
+
+const updatePassword = TryCatch(async (req, res, next) => {
+  const { identifier, verifyCode, password } = req.body;
+
+  console.log(req.body);
+
+  if (!identifier) {
+    return next(new ErrorHandler("Identifier is required", 400));
+  }
+
+  if (!verifyCode) {
+    return next(new ErrorHandler("Verify code is required", 400));
+  }
+
+  if (!password) {
+    return next(new ErrorHandler("Password is required", 400));
+  }
+
+  const user = await userModel.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  });
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (user.verifyCode !== verifyCode) {
+    return next(new ErrorHandler("Invalid verify code", 400));
+  }
+
+  if (user.verifyCodeExpiry < Date.now()) {
+    return next(new ErrorHandler("Verify code expired", 400));
+  }
+
+  user.password = password;
+  user.verifyCode = null;
+  user.verifyCodeExpiry = null;
+
+  await user.save();
+
+  sendToken(res, user, 200, "Password updated successfully");
+
+  return res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+});
+
+const verifyUser = TryCatch(async (req, res, next) => {
+  const { identifier, verifyCode } = req.body;
+
+  if (!identifier) {
+    return next(new ErrorHandler("Identifier is required", 400));
+  }
+
+  if (!verifyCode) {
+    return next(new ErrorHandler("Verify code is required", 400));
+  }
+
+  const user = await userModel.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  });
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (user.verifyCode !== verifyCode) {
+    return next(new ErrorHandler("Invalid verify code", 400));
+  }
+
+  if (user.verifyCodeExpiry < Date.now()) {
+    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const verifyCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.verifyCode = verifyCode;
+    user.verifyCodeExpiry = verifyCodeExpiry;
+
+    await user.save();
+
+    const baseUrl = req.headers.origin;
+    const emailResponse = await sendVerificationEmail({
+      baseUrl,
+      email: user.email,
+      username: user.username,
+      verifyCode,
+    });
+
+    if (!emailResponse.success) {
+      return next(new ErrorHandler("Failed to send verification email", 500));
+    }
+
+    return next(new ErrorHandler("Verify code expired", 400));
+  }
+
+  user.verifyCode = null;
+  user.verifyCodeExpiry = null;
+  user.isVerified = true;
+
+  await user.save();
+
+  sendToken(res, user, 200, "User verified successfully");
 });
 
 const getMyProfile = TryCatch(async (req, res, next) => {
@@ -367,15 +615,15 @@ const getMyFriends = TryCatch(async (req, res, next) => {
 });
 
 const acceptMessages = TryCatch(async (req, res, next) => {
-  const { isAcceptingMessages } = req.body;
+  const { isAcceptingMessage } = req.body;
 
-  if (isAcceptingMessages === undefined) {
-    return next(new ErrorHandler("isAcceptingMessages is required", 400));
+  if (isAcceptingMessage === undefined) {
+    return next(new ErrorHandler("isAcceptingMessage is required", 400));
   }
 
   const user = await userModel.findByIdAndUpdate(
     req.userId,
-    { isAcceptingMessages: isAcceptingMessages },
+    { isAcceptingMessage: isAcceptingMessage },
     { new: true, runValidators: true }
   );
 
@@ -384,13 +632,15 @@ const acceptMessages = TryCatch(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: `You are now ${
-      isAcceptingMessages ? "accepting" : "not accepting"
+      isAcceptingMessage ? "accepting" : "not accepting"
     } messages`,
   });
 });
 
 export {
   acceptFriendRequest,
+  acceptMessages,
+  forgotPassword,
   getMyFriends,
   getMyNotifications,
   getMyProfile,
@@ -399,5 +649,6 @@ export {
   newUser,
   searchUser,
   sendFriendRequest,
-  acceptMessages,
+  updatePassword,
+  verifyUser,
 };
