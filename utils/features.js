@@ -239,8 +239,6 @@ const sendForgotPasswordEmail = async ({
 
     const response = await transporter.sendMail(mailOptions);
 
-    console.log("Email sent successfully - Email", response);
-
     if (response.rejected.length > 0) {
       console.error(
         "Failed to send forgot password code - Email",
