@@ -614,8 +614,6 @@ const suggestMessages = TryCatch(async (req, res, next) => {
 const sendMessage = TryCatch(async (req, res, next) => {
   const { username, content, sender } = req.body;
 
-  console.log("sender", sender);
-
   if (!username) {
     return next(new ErrorHandler("Username is required", 400));
   }
@@ -683,5 +681,6 @@ export {
   renameGroup,
   sendAttachments,
   sendMessage,
-  suggestMessages,
+  suggestMessages
 };
+
