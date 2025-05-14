@@ -2,7 +2,9 @@ import { compare } from "bcrypt";
 import { cookieOptions } from "../app.js";
 import { ErrorHandler, TryCatch } from "../middlewares/error.js";
 import chatModel from "../models/chat.models.js";
+import messageModel from "../models/message.models.js";
 import requestModel from "../models/request.models.js";
+import userModel from "../models/user.models.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../utils/events.js";
 import {
   emitEvent,
@@ -11,7 +13,6 @@ import {
   sendVerificationEmail,
   uploadFilesToCloudinary,
 } from "../utils/features.js";
-import userModel from "../models/user.models.js";
 
 const newUser = TryCatch(async (req, res, next) => {
   const { name, email, password, username } = req.body;
@@ -163,7 +164,6 @@ const login = TryCatch(async (req, res, next) => {
 
   if (!isMatch) return next(new ErrorHandler("Invalid password", 401));
 
-
   if (!user.isVerified) {
     if (user.verifyCodeExpiry < new Date()) {
       const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -175,8 +175,6 @@ const login = TryCatch(async (req, res, next) => {
 
       const res = await user.save();
 
-      console.log(res);
-
       const baseUrl = req.headers.origin;
       const emailResponse = await sendVerificationEmail({
         baseUrl,
@@ -184,8 +182,6 @@ const login = TryCatch(async (req, res, next) => {
         username: user.username,
         verifyCode,
       });
-
-      console.log(emailResponse);
 
       if (!emailResponse.success) {
         return next(new ErrorHandler("Failed to send verification email", 500));
@@ -254,8 +250,6 @@ const forgotPassword = TryCatch(async (req, res, next) => {
 
 const updatePassword = TryCatch(async (req, res, next) => {
   const { identifier, verifyCode, password } = req.body;
-
-  console.log(req.body);
 
   if (!identifier) {
     return next(new ErrorHandler("Identifier is required", 400));
@@ -510,12 +504,22 @@ const acceptFriendRequest = TryCatch(async (req, res, next) => {
 
   const members = [request.sender._id, request.receiver._id];
 
-  await chatModel.create({
+  const chat = await chatModel.create({
     members,
     name: `${request.sender.name} - ${request.receiver.name}`,
     groupChat: false,
     creator: req.userId,
   });
+
+  await messageModel.updateMany(
+    {
+      $or: [
+        { sender: request.sender._id, chat: request.receiver._id },
+        { sender: req.userId, chat: request.sender._id },
+      ],
+    },
+    { chat: chat._id }
+  );
 
   await request.deleteOne();
 
@@ -650,5 +654,6 @@ export {
   searchUser,
   sendFriendRequest,
   updatePassword,
-  verifyUser,
+  verifyUser
 };
+
