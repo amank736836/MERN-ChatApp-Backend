@@ -561,7 +561,7 @@ const getMessages = TryCatch(async (req, res, next) => {
   if (chatId === req.userId) {
     messages.forEach((message) => {
       message.sender = {
-        _id: req.userId,
+        ...message.sender,
         name: "Anonymous",
       };
     });
@@ -614,6 +614,8 @@ const suggestMessages = TryCatch(async (req, res, next) => {
 const sendMessage = TryCatch(async (req, res, next) => {
   const { username, content, sender } = req.body;
 
+  console.log("sender", sender);
+
   if (!username) {
     return next(new ErrorHandler("Username is required", 400));
   }
@@ -633,8 +635,6 @@ const sendMessage = TryCatch(async (req, res, next) => {
   }
 
   const chat = await chatModel.findById(user._id);
-
-  console.log(chat);
 
   if (!chat) {
     return next(new ErrorHandler("Chat not found", 404));
@@ -658,8 +658,6 @@ const sendMessage = TryCatch(async (req, res, next) => {
   };
 
   const message = await messageModel.create(messageForDB);
-
-  console.log(message);
 
   emitEvent(req, NEW_MESSAGE, [user._id], {
     chatId: chat._id,
