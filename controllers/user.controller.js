@@ -445,7 +445,7 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
   ]);
 
   if (requestSent) {
-    return next(new ErrorHandler("Request already sent", 400));
+    return next(new ErrorHandler("Friend request sent successfully", 400));
   }
 
   if (requestReceived) {
@@ -654,6 +654,5 @@ export {
   searchUser,
   sendFriendRequest,
   updatePassword,
-  verifyUser
+  verifyUser,
 };
-
