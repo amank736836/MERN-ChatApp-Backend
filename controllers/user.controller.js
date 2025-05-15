@@ -445,7 +445,10 @@ const sendFriendRequest = TryCatch(async (req, res, next) => {
   ]);
 
   if (requestSent) {
-    return next(new ErrorHandler("Friend request sent successfully", 400));
+    return res.status(200).json({
+      success: true,
+      message: "Friend request sent successfully",
+    });
   }
 
   if (requestReceived) {
