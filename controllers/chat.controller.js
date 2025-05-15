@@ -638,8 +638,12 @@ const sendMessage = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Chat not found", 404));
   }
 
+  const existingChat = await chatModel.findOne({
+    members: { $all: [sender._id, user._id] },
+  });
+
   const messageForDB = {
-    chat: chat._id,
+    chat: existingChat ? existingChat._id : chat._id,
     content: content,
     sender: sender ? sender._id : user._id,
     attachments: [],
@@ -681,6 +685,5 @@ export {
   renameGroup,
   sendAttachments,
   sendMessage,
-  suggestMessages
+  suggestMessages,
 };
-
