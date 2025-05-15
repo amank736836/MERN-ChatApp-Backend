@@ -526,7 +526,7 @@ const acceptFriendRequest = TryCatch(async (req, res, next) => {
   emitEvent(
     req,
     REFETCH_CHATS,
-    [request.sender._id],
+    [request.sender._id, request.receiver._id],
     "Friend request accepted"
   );
 
