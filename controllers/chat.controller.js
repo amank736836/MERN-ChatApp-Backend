@@ -631,19 +631,12 @@ const sendMessage = TryCatch(async (req, res, next) => {
   if (!user.isAcceptingMessage) {
     return next(new ErrorHandler("User is not accepting messages", 400));
   }
-
-  const chat = await chatModel.findById(user._id);
-
-  if (!chat) {
-    return next(new ErrorHandler("Chat not found", 404));
-  }
-
   const existingChat = await chatModel.findOne({
-    members: { $all: [sender._id, user._id] },
+    members: { $all: [sender?._id, user._id] },
   });
 
   const messageForDB = {
-    chat: existingChat ? existingChat._id : chat._id,
+    chat: existingChat._id,
     content: content,
     sender: sender ? sender._id : user._id,
     attachments: [],
