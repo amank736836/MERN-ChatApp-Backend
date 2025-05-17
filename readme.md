@@ -1,159 +1,163 @@
-````markdown
-# MERN ChatApp Backend
-
-A Node.js & Express.js backend for ChatChamp, a real‑time anonymous chat application powered by MongoDB, Socket.IO, JWT authentication, file uploads, email notifications, AI‑driven features, and social interactions (friends & notifications).
 
 ---
 
-## 🚀 Features
+# 🛠️ ChatChamp Backend (Node.js + Express) 🚀
 
-- **RESTful API** for user registration, login, profiles, and social interactions (friends, notifications)  
-- **Admin API** for administrative operations (statistics, user/chat/message overviews)  
-- **Chat API** for one‑to‑one and group chat operations (messaging, group management, attachments)  
-- **WebSocket Server** using Socket.IO for real‑time messaging, typing indicators, and presence  
-- **Anonymous Messaging** support alongside authenticated chat flows  
-- **JWT Authentication** with access‑token expiration and secure HTTP‑only cookies  
-- **Password Security** via bcrypt hashing  
-- **Media Uploads** to Cloudinary (images, files)  
-- **Email Notifications** with Nodemailer for account actions and alerts  
-- **AI Integration** hooks using Google Generative AI SDK for smart replies  
-- **Configurable** entirely via environment variables
+Welcome to the **ChatChamp** backend repository! 🎉 This server-side component of ChatChamp handles user authentication, chat management, real-time messaging via WebSockets, and integrates with various services for enhanced functionality. 🔐💬
 
 ---
 
-## 🛠️ Tech Stack
+## 🌐 Live Demo 🔗
 
-- **Runtime & Framework:** Node.js (ES Modules), Express.js  
-- **Database:** MongoDB (Mongoose ODM)  
-- **Real‑Time:** Socket.IO  
-- **Auth & Security:** JSON Web Tokens, bcrypt, express-validator, cookie-parser, CORS  
-- **File Storage:** Multer, Cloudinary SDK  
-- **Email:** Nodemailer  
-- **AI SDK:** `@ai-sdk/google`, `ai`  
-- **Dev Tools:** nodemon, morgan, dotenv, uuid, `@faker-js/faker`
+👉 [chatchamp.vercel.app](https://chatchamp.vercel.app) 🌍
 
 ---
 
-## 📦 Installation
+## 👨‍💻 Developer 🛠️
 
-1. **Clone the repo**  
-   ```bash
-   git clone https://github.com/amank736836/MERN-ChatApp-Backend.git
-   cd MERN-ChatApp-Backend
-````
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-3. **Configure environment**
-   Create a `.env` file in the project root with the variables listed below.
-4. **Start the server**
-
-   * Development (hot reload):
-
-     ```bash
-     npm run dev
-     ```
-   * Production:
-
-     ```bash
-     npm start
-     ```
+* **Name:** Aman Kumar 👤
+* **LinkedIn:** [linkedin.com/in/amank736836](https://www.linkedin.com/in/amank736836) 🔗
+* **Portfolio:** [amank736836.vercel.app](https://amank736836.vercel.app) 🌟
+* **Feedback:** [chatchamp.vercel.app/u/amank736836](https://chatchamp.vercel.app/u/amank736836) 📋
 
 ---
 
-## 🔧 Environment Variables
+## 📂 Repositories 📁
 
-```dotenv
-# Server & Database
-MONGODB_URI=your_mongo_connection_string
+* **Main Repository:** [github.com/amank736836/MERN-ChatApp](https://github.com/amank736836/MERN-ChatApp) 🗃️
+* **Frontend Repo:** [github.com/amank736836/MERN-ChatApp-Frontend](https://github.com/amank736836/MERN-ChatApp-Frontend) 🎨
+* **Backend Repo:** [github.com/amank736836/MERN-ChatApp-Backend](https://github.com/amank736836/MERN-ChatApp-Backend) 🛠️
+
+---
+
+## 🚀 Features ✨
+
+* **Real-Time Communication:** Instant messaging powered by Socket.IO ⚡
+* **Authentication:** Secure login and registration using JWT and HTTP-only cookies 🔐
+* **AI Suggestions:** Smart message suggestions via Google Generative AI SDK 🤖
+* **Media Uploads:** Upload and manage media files using Cloudinary 🖼️
+* **Admin Panel:** Manage users, chats, and messages with comprehensive statistics 📊
+* **Email Notifications:** Send emails using Nodemailer 📧
+* **Environment Configuration:** Manage environment variables with dotenv 🧪
+
+---
+
+## 🛠️ Tech Stack 🧱
+
+* **Runtime:** Node.js 🟢
+* **Framework:** Express.js 🚂
+* **Database:** MongoDB with Mongoose 🍃
+* **Real-Time Communication:** Socket.IO 📡
+* **Authentication:** JSON Web Tokens (JWT) 🔑
+* **File Uploads:** Multer 📁
+* **Cloud Storage:** Cloudinary ☁️
+* **Email Service:** Nodemailer 📬
+* **AI Integration:** Google Generative AI SDK 🤖
+* **Logging:** Morgan 📋
+* **Environment Variables:** dotenv 🧪
+
+---
+
+## 📦 Installation & Setup 🧰
+
+### 1. Clone the Repository 🧬
+
+```bash
+git clone https://github.com/amank736836/MERN-ChatApp-Backend.git
+cd MERN-ChatApp-Backend
+```
+
+### 2. Install Dependencies 📥
+
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables ⚙️
+
+Create a `.env` file in the root directory and add the following:
+
+```env
 PORT=5000
 NODE_ENV=development
-
-# JWT & Cookies
+MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=7d
 JWT_COOKIE_EXPIRES_IN=7
-STEALTHY_NOTE_TOKEN_NAME=token_name
-STEALTHY_NOTE_ADMIN_TOKEN_NAME=admin_token_name
-ADMIN_SECRET_KEY=admin_only_secret
-
-# Client URLs
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 CLIENT_URL=http://localhost:3000
 CLIENT_PRODUCTION_URL=https://chatchamp.vercel.app
-
-# Email (Nodemailer)
-NODE_MAILER_EMAIL=your_email@example.com
-NODE_MAILER_PASSWORD=your_email_password
-
-# Cloudinary (Media Uploads)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-CLOUDINARY_URL=your_cloudinary_url
-
-# AI Integration
-GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_key
+STEALTHY_NOTE_TOKEN_NAME=your_token_name
+STEALTHY_NOTE_ADMIN_TOKEN_NAME=your_admin_token_name
+ADMIN_SECRET_KEY=your_admin_secret_key
 ```
 
----
+Replace the placeholder values with your actual configuration.
 
-## 📖 HTTP API Endpoints
+### 4. Run the Application ▶️
 
-### Public Auth
+```bash
+npm start
+```
 
-| Method | Endpoint                   | Description                |
-| ------ | -------------------------- | -------------------------- |
-| POST   | `/api/auth/register`       | Register new user          |
-| POST   | `/api/auth/login`          | Authenticate & receive JWT |
-| POST   | `/api/auth/verify`         | Verify user (email/code)   |
-| POST   | `/api/auth/forgotPassword` | Request password reset     |
-| POST   | `/api/auth/updatePassword` | Update with new password   |
-| GET    | `/api/auth/logout`         | Clear auth cookie          |
+The server will start on `http://localhost:5000` 🌐
 
 ---
 
-### User Routes
+## 📖 API Structure 📚
+
+All API endpoints are prefixed with `/api/v1` to support versioning and maintain backward compatibility. This structure allows for seamless integration of future updates without disrupting existing clients.
+
+### 🔐 Authentication Routes
+
+| Method | Endpoint                      | Description                |
+| ------ | ----------------------------- | -------------------------- |
+| POST   | `/api/v1/auth/register`       | Register new user          |
+| POST   | `/api/v1/auth/login`          | Authenticate & receive JWT |
+| POST   | `/api/v1/auth/verify`         | Verify user (email/code)   |
+| POST   | `/api/v1/auth/forgotPassword` | Request password reset     |
+| POST   | `/api/v1/auth/updatePassword` | Update with new password   |
+| GET    | `/api/v1/auth/logout`         | Clear auth cookie          |
+
+### 👤 User Routes
 
 > All these routes require a valid session (`isAuthenticated` middleware).
 
-| Method | Endpoint                    | Description                             |
-| ------ | --------------------------- | --------------------------------------- |
-| GET    | `/api/users/me`             | Get current user’s profile              |
-| GET    | `/api/users/notifications`  | Fetch current user’s notifications      |
-| GET    | `/api/users/search`         | Search for other users by name or email |
-| GET    | `/api/users/friends`        | List current user’s friends             |
-| POST   | `/api/users/sendRequest`    | Send a friend request                   |
-| PUT    | `/api/users/acceptRequest`  | Accept a friend request                 |
-| POST   | `/api/users/acceptMessages` | Enable/disable accepting messages       |
+| Method | Endpoint                       | Description                             |
+| ------ | ------------------------------ | --------------------------------------- |
+| GET    | `/api/v1/users/me`             | Get current user’s profile              |
+| GET    | `/api/v1/users/notifications`  | Fetch current user’s notifications      |
+| GET    | `/api/v1/users/search`         | Search for other users by name or email |
+| GET    | `/api/v1/users/friends`        | List current user’s friends             |
+| POST   | `/api/v1/users/sendRequest`    | Send a friend request                   |
+| PUT    | `/api/v1/users/acceptRequest`  | Accept a friend request                 |
+| POST   | `/api/v1/users/acceptMessages` | Enable/disable accepting messages       |
 
----
-
-### Chat Routes
+### 💬 Chat Routes
 
 > All chat routes require user authentication (`isAuthenticated` middleware).
 
-| Method | Endpoint                    | Description                                            |
-| ------ | --------------------------- | ------------------------------------------------------ |
-| POST   | `/api/chat/suggestMessages` | Get AI‑driven suggestions for the current conversation |
-| POST   | `/api/chat/sendMessage`     | Send a new text message                                |
-| GET    | `/api/chat`                 | Retrieve list of chats the user is a part of           |
-| GET    | `/api/chat/group`           | Retrieve all group chats                               |
-| POST   | `/api/chat/group`           | Create a new group chat                                |
-| PUT    | `/api/chat/group`           | Add members to an existing group chat                  |
-| DELETE | `/api/chat/group`           | Leave a group chat                                     |
-| PUT    | `/api/chat/removeMember`    | Remove a member from a group chat                      |
-| POST   | `/api/chat/message`         | Send attachments (images/files) to a chat              |
-| GET    | `/api/chat/message/:chatId` | Get all messages for a specific chat                   |
-| GET    | `/api/chat/:chatId`         | Get chat details (one‑to‑one or group)                 |
-| PUT    | `/api/chat/:chatId`         | Rename a group chat                                    |
-| DELETE | `/api/chat/:chatId`         | Delete a chat (one‑to‑one or group)                    |
+| Method | Endpoint                       | Description                                            |
+| ------ | ------------------------------ | ------------------------------------------------------ |
+| POST   | `/api/v1/chat/suggestMessages` | Get AI‑driven suggestions for the current conversation |
+| POST   | `/api/v1/chat/sendMessage`     | Send a new text message                                |
+| GET    | `/api/v1/chat`                 | Retrieve list of chats the user is a part of           |
+| GET    | `/api/v1/chat/group`           | Retrieve all group chats                               |
+| POST   | `/api/v1/chat/group`           | Create a new group chat                                |
+| PUT    | `/api/v1/chat/group`           | Add members to an existing group chat                  |
+| DELETE | `/api/v1/chat/group`           | Leave a group chat                                     |
+| PUT    | `/api/v1/chat/removeMember`    | Remove a member from a group chat                      |
+| POST   | `/api/v1/chat/message`         | Send attachments (images/files) to a chat              |
+| GET    | `/api/v1/chat/message/:chatId` | Get all messages for a specific chat                   |
+| GET    | `/api/v1/chat/:chatId`         | Get chat details (one‑to‑one or group)                 |
+| PUT    | `/api/v1/chat/:chatId`         | Rename a group chat                                    |
+| DELETE | `/api/v1/chat/:chatId`         | Delete a chat (one‑to‑one or group)                    |
 
 ---
 
-## 🔌 WebSocket Events
+## 🔌 WebSocket Events 📡
 
 | Event               | Direction         | Description                                                                |
 | ------------------- | ----------------- | -------------------------------------------------------------------------- |
@@ -170,21 +174,26 @@ GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_key
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing 🧑‍🤝‍🧑
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/xyz`)
-3. Commit your changes (`git commit -m "Add xyz"`)
-4. Push to your branch (`git push origin feature/xyz`)
-5. Open a Pull Request
+1. Fork the repository 🍴
+2. Create a new branch: `git checkout -b feature/your-feature-name` 🌿
+3. Commit your changes: `git commit -m 'Add your feature'` 📝
+4. Push to the branch: `git push origin feature/your-feature-name` 🚀
+5. Open a pull request 📬
 
-Please follow existing code style and include tests where applicable.
+Please ensure your code follows the project's coding standards and includes relevant tests ✅
 
 ---
 
-## 📄 License
+## 📄 License 📜
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE) 🆓
 
-```
-```
+---
+
+## 📬 Contact 📞
+
+For any inquiries or feedback, please reach out via [LinkedIn](https://www.linkedin.com/in/amank736836) or submit feedback through the [ChatChamp Feedback Page](https://chatchamp.vercel.app/u/amank736836) 💌
+
+---
