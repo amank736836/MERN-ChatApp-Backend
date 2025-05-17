@@ -661,10 +661,17 @@ const sendMessage = TryCatch(async (req, res, next) => {
 
   const message = await messageModel.create(messageForDB);
 
-  emitEvent(req, NEW_MESSAGE, [user._id], {
-    chatId: existingChat ? existingChat._id : chat._id,
-    message: messageForRealTime,
-  });
+  if (existingChat) {
+    emitEvent(req, NEW_MESSAGE, existingChat.members, {
+      message: messageForRealTime,
+      chatId: existingChat._id,
+    });
+  } else {
+    emitEvent(req, NEW_MESSAGE, chat.members, {
+      message: messageForRealTime,
+      chatId: chat._id,
+    });
+  }
 
   return res.status(200).json({
     success: true,
